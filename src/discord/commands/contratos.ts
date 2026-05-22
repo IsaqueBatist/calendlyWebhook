@@ -4,6 +4,7 @@ import type { DiscordCommandModule } from "../types";
 export const ContratosCommand: DiscordCommandModule = {
   name: "contratos-finalizando",
   modalId: "form_contratos",
+  buttonPrefixes: ["contrato_"],
 
   renderModal: () => ({
     type: 9,

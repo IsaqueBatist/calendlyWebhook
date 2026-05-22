@@ -25,38 +25,38 @@ const commands = [
     type: 1,
   },
   {
-    name: "contratos-finalizando",
+    name: "alerta-contrato",
     description:
       "Notifica o comercial sobre contratos a menos de 3 meses do encerramento.",
     type: 1,
   },
   {
-    name: "edicao-solicitar",
+    name: "solicitar-edicao",
     description: "Solicita novas edições de vídeo ao time de Marketing.",
     type: 1,
   },
   {
-    name: "case-pedir",
+    name: "solicitar-case",
     description: "Solicita a geração de cases de sucesso ao Marketing.",
     type: 1,
   },
   {
-    name: "pedido-cancelamento",
+    name: "registrar-cancelamento",
     description: "Registra pedidos de cancelamento de clientes.",
     type: 1,
   },
   {
-    name: "logistica-pedido",
+    name: "solicitar-envio",
     description: "Solicita a preparação e envio de equipamentos à Logística.",
     type: 1,
   },
   {
-    name: "pedido-enviado",
+    name: "registrar-envio",
     description: "Registra os dados técnicos das câmeras enviadas (Logística).",
     type: 1,
   },
   {
-    name: "negativacao-relatorio",
+    name: "relatorio-negativacao",
     description: "Gera o relatório quinzenal de palavras-chave negativadas.",
     type: 1,
   },

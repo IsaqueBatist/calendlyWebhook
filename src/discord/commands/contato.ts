@@ -6,6 +6,7 @@ export const ContatoCommand: DiscordCommandModule = {
   name: "contato",
   modalId: "form_contato",
   editModalId: "form_contato_editar",
+  buttonPrefixes: ["contato_"],
 
   renderModal: () => ({
     type: 9,
