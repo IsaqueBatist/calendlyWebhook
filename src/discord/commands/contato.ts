@@ -1,4 +1,3 @@
-// src/discord/commands/contato.ts
 import type { DiscordCommandModule } from "../types";
 
 const GABRIEL_ID = "1437511382370095217";
@@ -6,10 +5,10 @@ const GABRIEL_ID = "1437511382370095217";
 export const ContatoCommand: DiscordCommandModule = {
   name: "contato",
   modalId: "form_contato",
+  editModalId: "form_contato_editar",
 
-  // 1. Abertura do Formulário Inicial (T1 / D+0)
   renderModal: () => ({
-    type: 9, // InteractionResponseType.MODAL
+    type: 9,
     data: {
       custom_id: "form_contato",
       title: "Registro de Problema (D+0)",
@@ -54,19 +53,18 @@ export const ContatoCommand: DiscordCommandModule = {
     },
   }),
 
-  // 2. Submissão do Formulário e Criação do Painel Interativo
   handleSubmission: (components) => {
     const getValue = (id: string) =>
       components.find((c: any) => c.components[0].custom_id === id)
         ?.components[0].value;
 
     return {
-      type: 4, // InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE
+      type: 4,
       data: {
         embeds: [
           {
             title: "⏳ Rastreamento de Contato Iniciado",
-            color: 0xffa500, // Laranja (Em progresso)
+            color: 0xffa500,
             fields: [
               { name: "Cliente", value: getValue("cliente"), inline: true },
               { name: "Câmera", value: getValue("camera"), inline: true },
@@ -81,7 +79,7 @@ export const ContatoCommand: DiscordCommandModule = {
         ],
         components: [
           {
-            type: 1, // Action Row com os botões
+            type: 1, // Linha 1: Controles de Rastreamento
             components: [
               {
                 type: 2,
@@ -95,6 +93,17 @@ export const ContatoCommand: DiscordCommandModule = {
                 custom_id: "contato_t3",
                 label: "Registrar T3 (D+2)",
               },
+              {
+                type: 2,
+                style: 1,
+                custom_id: "contato_editar",
+                label: "✏️ Editar Dados",
+              }, // Botão de Edição
+            ],
+          },
+          {
+            type: 1, // Linha 2: Controles de Fechamento
+            components: [
               {
                 type: 2,
                 style: 3,
@@ -114,55 +123,153 @@ export const ContatoCommand: DiscordCommandModule = {
     };
   },
 
-  // 3. Processamento do Clique nos Botões
   handleComponent: (interaction) => {
     const customId = interaction.data.custom_id;
-    const embed = interaction.message.embeds[0]; // Captura o estado atual da mensagem
+    const embed = interaction.message.embeds[0];
 
-    // Encontra o index do campo "Histórico de Ações" para atualizá-mo
-    const historyIndex = embed.fields.findIndex(
-      (f: any) => f.name === "Histórico de Ações",
-    );
-
-    if (customId === "contato_resolvido") {
-      embed.color = 0x00ff00; // Verde
-      embed.fields[historyIndex].value +=
-        `\n✅ **Fechado:** Cliente respondeu e problema foi resolvido.`;
+    // Invocação do Modal de Edição (Retorna status 9)
+    if (customId === "contato_editar") {
+      const getField = (name: string) =>
+        embed.fields.find((f: any) => f.name === name)?.value || "";
 
       return {
-        type: 7, // UPDATE_MESSAGE (Edita a mensagem no lugar)
-        data: { embeds: [embed], components: [] }, // Remove os botões
+        type: 9,
+        data: {
+          custom_id: "form_contato_editar",
+          title: "Editar Dados do Registro",
+          components: [
+            // A propriedade 'value' injeta o estado atual do servidor na tela do cliente
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "cliente",
+                  label: "CLIENTE",
+                  style: 1,
+                  required: true,
+                  value: getField("Cliente"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "camera",
+                  label: "CÂMERA",
+                  style: 1,
+                  required: true,
+                  value: getField("Câmera"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "problema",
+                  label: "DESCRIÇÃO DO PROBLEMA",
+                  style: 2,
+                  required: true,
+                  value: getField("Problema"),
+                },
+              ],
+            },
+          ],
+        },
       };
     }
 
+    const historyIndex = embed.fields.findIndex(
+      (f: any) => f.name === "Histórico de Ações",
+    );
+    const historyText = embed.fields[historyIndex].value;
+
+    const newComponents = JSON.parse(
+      JSON.stringify(interaction.message.components),
+    );
+
+    // Varredura profunda em múltiplas Action Rows para encontrar e desabilitar o botão
+    const disableButton = (id: string) => {
+      for (const row of newComponents) {
+        const btn = row.components.find((b: any) => b.custom_id === id);
+        if (btn) {
+          btn.disabled = true;
+          break;
+        }
+      }
+    };
+
+    if (customId === "contato_resolvido") {
+      embed.color = 0x00ff00;
+      embed.fields[historyIndex].value +=
+        `\n✅ **Fechado:** Cliente respondeu e problema foi resolvido.`;
+      return { type: 7, data: { embeds: [embed], components: [] } };
+    }
+
     if (customId === "contato_escalar") {
-      embed.color = 0xff0000; // Vermelho
+      embed.color = 0xff0000;
       embed.fields[historyIndex].value +=
         `\n🚨 **Escalada (D+3):** Sem resposta do cliente.`;
-
       return {
         type: 7,
         data: {
           content: `🚨 <@${GABRIEL_ID}>, escalada requisitada! Assuma este chamado em até 24h.`,
           embeds: [embed],
-          components: [], // Desativa os botões após escalar
+          components: [],
         },
       };
     }
 
     if (customId === "contato_t2") {
+      if (historyText.includes("T2 | D+1"))
+        return {
+          type: 7,
+          data: { embeds: [embed], components: interaction.message.components },
+        };
       embed.fields[historyIndex].value +=
         `\nT2 | D+1: Ligação telefônica + 2º WhatsApp (Registrado por <@${interaction.member.user.id}>).`;
+      disableButton("contato_t2");
     }
 
     if (customId === "contato_t3") {
+      if (historyText.includes("T3 | D+2"))
+        return {
+          type: 7,
+          data: { embeds: [embed], components: interaction.message.components },
+        };
       embed.fields[historyIndex].value +=
         `\nT3 | D+2: Acionado outro contato da organização (Registrado por <@${interaction.member.user.id}>).`;
+      disableButton("contato_t3");
     }
 
-    // Retorna a mensagem com o histórico atualizado, mantendo os botões
+    return { type: 7, data: { embeds: [embed], components: newComponents } };
+  },
+
+  // Novo tratador para injetar os dados modificados na mensagem existente
+  handleEditSubmission: (interaction) => {
+    const components = interaction.data.components;
+    const getValue = (id: string) =>
+      components.find((c: any) => c.components[0].custom_id === id)
+        ?.components[0].value;
+
+    const embed = interaction.message.embeds[0];
+
+    // Mutação limpa dos campos estáticos
+    const updateField = (name: string, val: string) => {
+      const idx = embed.fields.findIndex((f: any) => f.name === name);
+      if (idx !== -1) embed.fields[idx].value = val;
+    };
+
+    updateField("Cliente", getValue("cliente"));
+    updateField("Câmera", getValue("camera"));
+    updateField("Problema", getValue("problema"));
+
     return {
-      type: 7,
+      type: 7, // UPDATE_MESSAGE
       data: { embeds: [embed], components: interaction.message.components },
     };
   },

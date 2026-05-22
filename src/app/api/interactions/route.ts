@@ -61,12 +61,30 @@ export async function POST(req: NextRequest) {
   }
 
   // 4. SUBMISSÃO DE MODAL
+  // 4. SUBMISSÃO DE MODAL
   if (interaction.type === 5) {
     const modalId = interaction.data.custom_id;
-    const module = commandRegistry.find((m) => m.modalId === modalId);
-    if (module && module.handleSubmission) {
+
+    // Roteia submissões de Criação
+    const moduleForCreation = commandRegistry.find(
+      (m) => m.modalId === modalId,
+    );
+    if (moduleForCreation && moduleForCreation.handleSubmission) {
       return new Response(
-        JSON.stringify(module.handleSubmission(interaction.data.components)),
+        JSON.stringify(
+          moduleForCreation.handleSubmission(interaction.data.components),
+        ),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // Roteia submissões de Edição
+    const moduleForEdit = commandRegistry.find(
+      (m) => m.editModalId === modalId,
+    );
+    if (moduleForEdit && moduleForEdit.handleEditSubmission) {
+      return new Response(
+        JSON.stringify(moduleForEdit.handleEditSubmission(interaction)),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }
