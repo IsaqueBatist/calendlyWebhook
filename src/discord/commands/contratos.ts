@@ -1,7 +1,7 @@
 import type { DiscordCommandModule } from "../types";
 
 export const ContratosCommand: DiscordCommandModule = {
-  name: "alertas-contrato", // Ajustado para corresponder ao comando do Discord
+  name: "alerta-contrato", // Ajustado para corresponder ao comando do Discord
   modalId: "form_contratos",
   buttonPrefixes: ["contrato_"],
 
