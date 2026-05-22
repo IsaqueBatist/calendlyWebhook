@@ -10,6 +10,7 @@ const commandRegistry = [EscalarCommand];
 const PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY!;
 
 export async function POST(req: NextRequest) {
+  console.log("PI");
   const signature = req.headers.get("x-signature-ed25519");
   const timestamp = req.headers.get("x-signature-timestamp");
   const rawBody = await req.text();
@@ -23,7 +24,11 @@ export async function POST(req: NextRequest) {
   const interaction = JSON.parse(rawBody);
 
   if (interaction.type === InteractionType.PING) {
-    return NextResponse.json({ type: 1 });
+    console.log("Pong - Respondendo ao Discord");
+    return new Response(JSON.stringify({ type: 1 }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // ROTEAMENTO DE COMANDOS (Abertura de Modais)
