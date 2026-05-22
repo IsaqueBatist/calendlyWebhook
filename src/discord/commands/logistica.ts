@@ -2,7 +2,7 @@
 import type { DiscordCommandModule } from "../types";
 
 export const LogisticaCommand: DiscordCommandModule = {
-  name: "logistica-pedido",
+  name: "solicitar-envio",
   modalId: "form_logistica",
   buttonPrefixes: ["log_"],
 

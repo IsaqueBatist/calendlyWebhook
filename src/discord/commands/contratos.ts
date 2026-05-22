@@ -1,13 +1,12 @@
-// src/discord/commands/contratos.ts
 import type { DiscordCommandModule } from "../types";
 
 export const ContratosCommand: DiscordCommandModule = {
-  name: "contratos-finalizando",
+  name: "alertas-contrato", // Ajustado para corresponder ao comando do Discord
   modalId: "form_contratos",
   buttonPrefixes: ["contrato_"],
 
   renderModal: () => ({
-    type: 9,
+    type: 9, // Modal
     data: {
       custom_id: "form_contratos",
       title: "Alerta de Fim de Contrato (< 3 meses)",
@@ -58,12 +57,12 @@ export const ContratosCommand: DiscordCommandModule = {
         ?.components[0].value;
 
     return {
-      type: 4,
+      type: 4, // ChannelMessage With Source
       data: {
         embeds: [
           {
             title: "⚠️ Contrato Próximo do Fim",
-            color: 0xffa500, // Laranja
+            color: 0xffa500,
             fields: [
               { name: "Empresa", value: getValue("empresa"), inline: true },
               {
@@ -113,18 +112,18 @@ export const ContratosCommand: DiscordCommandModule = {
     const statusIndex = embed.fields.findIndex(
       (f: any) => f.name === "Status Comercial",
     );
+    const userId = (interaction.member?.user || interaction.user).id;
 
     if (customId === "contrato_retido") {
       embed.color = 0x00ff00;
       embed.fields[statusIndex].value =
-        `✅ Retido com sucesso por <@${interaction.member.user.id}>.`;
+        `✅ Retido com sucesso por <@${userId}>.`;
       return { type: 7, data: { embeds: [embed], components: [] } };
     }
 
     if (customId === "contrato_perdido") {
       embed.color = 0xff0000;
-      embed.fields[statusIndex].value =
-        `❌ Perda confirmada por <@${interaction.member.user.id}>.`;
+      embed.fields[statusIndex].value = `❌ Perda confirmada por <@${userId}>.`;
       return { type: 7, data: { embeds: [embed], components: [] } };
     }
   },

@@ -1,18 +1,15 @@
-import { NextRequest } from "next/server";
-import { verifyKey } from "discord-interactions";
-import { EscalarCommand } from "@/discord/commands/escalar";
-import { ContatoCommand } from "@/discord/commands/contato"; // <-- Importe o novo módulo
 import { ContratosCommand } from "@/discord/commands/contratos";
 import { LogisticaCommand } from "@/discord/commands/logistica";
 import { RelatorioCommand } from "@/discord/commands/relatorio";
 import { CaseCommand } from "@/discord/commands/case";
-import { CancelamentoCommand } from "@/discord/commands/cancelamento";
 import { EdicaoCommand } from "@/discord/commands/edicao";
+import { CancelamentoCommand } from "@/discord/commands/cancelamento";
 import { EnviadoCommand } from "@/discord/commands/enviado";
+import { ContatoCommand } from "@/discord/commands/contato";
+import { EscalarCommand } from "@/discord/commands/escalar";
+import { verifyKey } from "discord-interactions";
+import { NextRequest } from "next/server";
 
-export const runtime = "edge";
-
-// Adicione o ContatoCommand ao registro
 const commandRegistry = [
   EscalarCommand,
   ContatoCommand,
@@ -20,8 +17,8 @@ const commandRegistry = [
   LogisticaCommand,
   RelatorioCommand,
   CaseCommand,
-  CancelamentoCommand,
   EdicaoCommand,
+  CancelamentoCommand,
   EnviadoCommand,
 ];
 
@@ -65,7 +62,6 @@ export async function POST(req: NextRequest) {
   }
 
   // 3. CLIQUE EM BOTÃO (MESSAGE_COMPONENT) <-- Nova Lógica
-  // 3. CLIQUE EM BOTÃO (MESSAGE_COMPONENT)
   if (interaction.type === 3) {
     const customId = interaction.data.custom_id;
 

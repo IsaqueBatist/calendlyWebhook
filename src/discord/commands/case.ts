@@ -1,15 +1,15 @@
 import type { DiscordCommandModule } from "../types";
 
 export const CaseCommand: DiscordCommandModule = {
-  name: "case-pedir",
-  modalId: "form_edicao",
-  buttonPrefixes: ["edicao_"],
+  name: "solicitar-case",
+  modalId: "form_case",
+  buttonPrefixes: ["case_"],
 
   renderModal: () => ({
     type: 9,
     data: {
-      custom_id: "form_edicao",
-      title: "Pedido de Nova Edição",
+      custom_id: "form_case",
+      title: "Pedido de Novo Case de Sucesso",
       components: [
         {
           type: 1,
@@ -29,7 +29,7 @@ export const CaseCommand: DiscordCommandModule = {
             {
               type: 4,
               custom_id: "categoria",
-              label: "CATEGORIA (Obras | Hospitais | Outro)",
+              label: "CATEGORIA (Obras | Prédio | Outro)",
               style: 1,
               required: true,
             },
@@ -41,7 +41,7 @@ export const CaseCommand: DiscordCommandModule = {
             {
               type: 4,
               custom_id: "obs",
-              label: "OBSERVAÇÕES (Logo, Google Earth, etc)",
+              label: "OBSERVAÇÕES DA EDIÇÃO DO CASE",
               style: 2,
               required: true,
             },
@@ -61,20 +61,15 @@ export const CaseCommand: DiscordCommandModule = {
       data: {
         embeds: [
           {
-            title: "🎬 Geração de Case",
-            color: 0x9b59b6, // Roxo Marketing
+            title: "📚 Nova Solicitação de Case",
+            color: 0x34495e,
             fields: [
               { name: "Tipo", value: getValue("tipo"), inline: true },
               { name: "Categoria", value: getValue("categoria"), inline: true },
-              { name: "Período", value: getValue("periodo"), inline: false },
-              {
-                name: "Observações Específicas",
-                value: getValue("obs"),
-                inline: false,
-              },
+              { name: "Observações", value: getValue("obs"), inline: false },
               {
                 name: "Status",
-                value: "Aguardando fila de edição.",
+                value: "Aguardando produção do Marketing.",
                 inline: false,
               },
             ],
@@ -87,14 +82,14 @@ export const CaseCommand: DiscordCommandModule = {
               {
                 type: 2,
                 style: 1,
-                custom_id: "edicao_produzindo",
+                custom_id: "case_produzindo",
                 label: "⚙️ Em Produção",
               },
               {
                 type: 2,
                 style: 3,
-                custom_id: "edicao_concluida",
-                label: "✅ Concluído (Entregue)",
+                custom_id: "case_concluido",
+                label: "✅ Concluído",
               },
             ],
           },
@@ -107,30 +102,30 @@ export const CaseCommand: DiscordCommandModule = {
     const customId = interaction.data.custom_id;
     const embed = interaction.message.embeds[0];
     const statusIndex = embed.fields.findIndex((f: any) => f.name === "Status");
+    const userId = (interaction.member?.user || interaction.user).id;
     const newComponents = JSON.parse(
       JSON.stringify(interaction.message.components),
     );
 
-    if (customId === "edicao_produzindo") {
-      if (embed.fields[statusIndex].value.includes("Em produção"))
+    if (customId === "case_produzindo") {
+      if (embed.fields[statusIndex].value.includes("Em produção")) {
         return {
           type: 7,
           data: { embeds: [embed], components: interaction.message.components },
         };
-      embed.color = 0xf1c40f; // Amarelo
-      embed.fields[statusIndex].value =
-        `⚙️ Em produção (Assumido por <@${(interaction.member?.user || interaction.user).id}>).`;
+      }
+      embed.color = 0xf1c40f;
+      embed.fields[statusIndex].value = `⚙️ Em produção por <@${userId}>.`;
       newComponents[0].components.find(
-        (b: any) => b.custom_id === "edicao_produzindo",
+        (b: any) => b.custom_id === "case_produzindo",
       ).disabled = true;
       return { type: 7, data: { embeds: [embed], components: newComponents } };
     }
 
-    if (customId === "edicao_concluida") {
+    if (customId === "case_concluido") {
       embed.color = 0x00ff00;
-      embed.fields[statusIndex].value =
-        `✅ Edição finalizada e entregue por <@${(interaction.member?.user || interaction.user).id}>.`;
-      return { type: 7, data: { embeds: [embed], components: [] } }; // Finaliza
+      embed.fields[statusIndex].value = `✅ Case concluído por <@${userId}>.`;
+      return { type: 7, data: { embeds: [embed], components: [] } };
     }
   },
 };

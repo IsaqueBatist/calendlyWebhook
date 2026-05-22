@@ -1,8 +1,7 @@
-// src/discord/commands/relatorio.ts
 import type { DiscordCommandModule } from "../types";
 
 export const RelatorioCommand: DiscordCommandModule = {
-  name: "negativacao-relatorio",
+  name: "relatorio-negativacao", // Nome corrigido para bater com a chamada do bot
   modalId: "form_relatorio",
 
   renderModal: () => ({
@@ -45,8 +44,6 @@ export const RelatorioCommand: DiscordCommandModule = {
     const getValue = (id: string) =>
       components.find((c: any) => c.components[0].custom_id === id)
         ?.components[0].value;
-
-    // Tratamento estrito de string para garantir formatação em bloco de código (Markdown)
     const rawData = getValue("dados");
     const formattedData = `\`\`\`markdown\n${rawData}\n\`\`\``;
 
@@ -57,7 +54,7 @@ export const RelatorioCommand: DiscordCommandModule = {
           {
             title: "📊 Relatório de Negativação (Ads)",
             description: "Análise de performance e palavras-chave isoladas.",
-            color: 0x9b59b6, // Roxo
+            color: 0x9b59b6,
             fields: [
               {
                 name: "Período Analisado",
