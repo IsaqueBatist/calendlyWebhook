@@ -1,9 +1,10 @@
 export interface DiscordCommandModule {
   name: string;
   modalId?: string;
-  editModalId?: string; // Novo: Identificador do modal de edição
+  editModalId?: string;
+  buttonPrefixes?: string[]; // NOVO: Define quais botões pertencem a este módulo
   renderModal?: () => any;
   handleSubmission?: (components: any[]) => any;
-  handleEditSubmission?: (interaction: any) => any; // Novo: Tratamento da edição
+  handleEditSubmission?: (interaction: any) => any;
   handleComponent?: (interaction: any) => any;
 }

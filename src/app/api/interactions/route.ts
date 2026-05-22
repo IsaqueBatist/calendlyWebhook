@@ -5,6 +5,10 @@ import { ContatoCommand } from "@/discord/commands/contato"; // <-- Importe o no
 import { ContratosCommand } from "@/discord/commands/contratos";
 import { LogisticaCommand } from "@/discord/commands/logistica";
 import { RelatorioCommand } from "@/discord/commands/relatorio";
+import { CaseCommand } from "@/discord/commands/case";
+import { CancelamentoCommand } from "@/discord/commands/cancelamento";
+import { EdicaoCommand } from "@/discord/commands/edicao";
+import { EnviadoCommand } from "@/discord/commands/enviado";
 
 export const runtime = "edge";
 
@@ -15,6 +19,10 @@ const commandRegistry = [
   ContratosCommand,
   LogisticaCommand,
   RelatorioCommand,
+  CaseCommand,
+  CancelamentoCommand,
+  EdicaoCommand,
+  EnviadoCommand,
 ];
 
 export async function POST(req: NextRequest) {
@@ -57,15 +65,20 @@ export async function POST(req: NextRequest) {
   }
 
   // 3. CLIQUE EM BOTÃO (MESSAGE_COMPONENT) <-- Nova Lógica
+  // 3. CLIQUE EM BOTÃO (MESSAGE_COMPONENT)
   if (interaction.type === 3) {
     const customId = interaction.data.custom_id;
 
-    // Roteia para o módulo de Contato se o botão tiver o prefixo "contato_"
-    if (customId.startsWith("contato_")) {
-      return new Response(
-        JSON.stringify(ContatoCommand.handleComponent!(interaction)),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
+    // Varre o registro buscando qual módulo é dono desse prefixo de botão
+    const module = commandRegistry.find((m) =>
+      m.buttonPrefixes?.some((prefix) => customId.startsWith(prefix)),
+    );
+
+    if (module && module.handleComponent) {
+      return new Response(JSON.stringify(module.handleComponent(interaction)), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
   }
 
