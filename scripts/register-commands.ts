@@ -18,6 +18,12 @@ const commands = [
     description: "Abre o formulário de solicitação de novo pedido.",
     type: 1,
   },
+  {
+    name: "contato",
+    description:
+      "Inicia o rastreamento do fluxo de contato com cliente offline (T1 a T3).",
+    type: 1,
+  },
 ];
 
 async function registerCommands() {
