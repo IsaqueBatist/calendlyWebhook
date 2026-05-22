@@ -2,11 +2,20 @@ import { NextRequest } from "next/server";
 import { verifyKey } from "discord-interactions";
 import { EscalarCommand } from "@/discord/commands/escalar";
 import { ContatoCommand } from "@/discord/commands/contato"; // <-- Importe o novo módulo
+import { ContratosCommand } from "@/discord/commands/contratos";
+import { LogisticaCommand } from "@/discord/commands/logistica";
+import { RelatorioCommand } from "@/discord/commands/relatorio";
 
 export const runtime = "edge";
 
 // Adicione o ContatoCommand ao registro
-const commandRegistry = [EscalarCommand, ContatoCommand];
+const commandRegistry = [
+  EscalarCommand,
+  ContatoCommand,
+  ContratosCommand,
+  LogisticaCommand,
+  RelatorioCommand,
+];
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-signature-ed25519");
@@ -60,7 +69,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 4. SUBMISSÃO DE MODAL
   // 4. SUBMISSÃO DE MODAL
   if (interaction.type === 5) {
     const modalId = interaction.data.custom_id;

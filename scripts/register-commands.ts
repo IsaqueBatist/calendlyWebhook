@@ -24,6 +24,42 @@ const commands = [
       "Inicia o rastreamento do fluxo de contato com cliente offline (T1 a T3).",
     type: 1,
   },
+  {
+    name: "contratos-finalizando",
+    description:
+      "Notifica o comercial sobre contratos a menos de 3 meses do encerramento.",
+    type: 1,
+  },
+  {
+    name: "edicao-solicitar",
+    description: "Solicita novas edições de vídeo ao time de Marketing.",
+    type: 1,
+  },
+  {
+    name: "case-pedir",
+    description: "Solicita a geração de cases de sucesso ao Marketing.",
+    type: 1,
+  },
+  {
+    name: "pedido-cancelamento",
+    description: "Registra pedidos de cancelamento de clientes.",
+    type: 1,
+  },
+  {
+    name: "logistica-pedido",
+    description: "Solicita a preparação e envio de equipamentos à Logística.",
+    type: 1,
+  },
+  {
+    name: "pedido-enviado",
+    description: "Registra os dados técnicos das câmeras enviadas (Logística).",
+    type: 1,
+  },
+  {
+    name: "negativacao-relatorio",
+    description: "Gera o relatório quinzenal de palavras-chave negativadas.",
+    type: 1,
+  },
 ];
 
 async function registerCommands() {
