@@ -13,81 +13,81 @@ export const EscalarCommand: DiscordCommandModule = {
       title: "Escalonamento",
       components: [
         {
-          type: 1,
+          type: 1, // Action Row 1
           components: [
             {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "cliente",
-                  label: "CLIENTE",
-                  style: 1,
-                  required: true,
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "camera",
-                  label: "CÂMERA",
-                  style: 1,
-                  required: true,
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "tempo",
-                  label: "TEMPO OFFLINE/COM PROBLEMA",
-                  style: 1,
-                  required: true,
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "tentativas",
-                  label: "Tentativas (datas/canais)",
-                  style: 2,
-                  required: true,
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "diagnostico",
-                  label: "DIAGNÓSTICO",
-                  style: 2,
-                  required: true,
-                },
-              ],
+              type: 4,
+              custom_id: "cliente",
+              label: "CLIENTE",
+              style: 1, // 1 = Short (Linha única)
+              required: true,
             },
           ],
         },
-        // ... (Adicione os demais campos do formulário aqui)
+        {
+          type: 1, // Action Row 2
+          components: [
+            {
+              type: 4,
+              custom_id: "camera",
+              label: "CÂMERA",
+              style: 1,
+              required: true,
+            },
+          ],
+        },
+        {
+          type: 1, // Action Row 3
+          components: [
+            {
+              type: 4,
+              custom_id: "tempo",
+              label: "TEMPO OFFLINE/COM PROBLEMA",
+              style: 1,
+              required: true,
+            },
+          ],
+        },
+        {
+          type: 1, // Action Row 4
+          components: [
+            {
+              type: 4,
+              custom_id: "tentativas",
+              label: "Tentativas (datas/canais)",
+              style: 2, // 2 = Paragraph (Múltiplas linhas)
+              required: true,
+            },
+          ],
+        },
+        {
+          type: 1, // Action Row 5
+          components: [
+            {
+              type: 4,
+              custom_id: "diagnostico",
+              label: "DIAGNÓSTICO",
+              style: 2,
+              required: true,
+            },
+          ],
+        },
       ],
     },
   }),
 
   handleSubmission: (components) => {
+    // Helper para extrair o valor buscando pelo custom_id dentro da hierarquia aninhada da resposta
     const getValue = (id: string) =>
       components.find((c: any) => c.components[0].custom_id === id)
         ?.components[0].value;
 
-    const message = `**ESCALONAMENTO**\n**CLIENTE:** ${getValue("cliente")}\n...`;
+    const message = `**ESCALONAMENTO**
+**CLIENTE:** ${getValue("cliente")}
+**CÂMERA:** ${getValue("camera")}
+**TEMPO OFFLINE/COM PROBLEMA:** ${getValue("tempo")}
+**Tentativas (datas/canais):** ${getValue("tentativas")}
+**DIAGNÓSTICO:** ${getValue("diagnostico")}`;
 
     return {
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
