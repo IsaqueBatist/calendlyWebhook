@@ -20,7 +20,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Validação criptográfica do payload
-  const isValidRequest = verifyKey(rawBody, signature, timestamp, publicKey);
+  const isValidRequest = await verifyKey(
+    rawBody,
+    signature,
+    timestamp,
+    publicKey,
+  );
   if (!isValidRequest) {
     return new Response("Bad request signature", { status: 401 });
   }
