@@ -16,11 +16,64 @@ export const EscalarCommand: DiscordCommandModule = {
           type: 1,
           components: [
             {
-              type: 4,
-              custom_id: "cliente",
-              label: "CLIENTE",
-              style: 1,
-              required: true,
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "cliente",
+                  label: "CLIENTE",
+                  style: 1,
+                  required: true,
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "camera",
+                  label: "CÂMERA",
+                  style: 1,
+                  required: true,
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "tempo",
+                  label: "TEMPO OFFLINE/COM PROBLEMA",
+                  style: 1,
+                  required: true,
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "tentativas",
+                  label: "Tentativas (datas/canais)",
+                  style: 2,
+                  required: true,
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "diagnostico",
+                  label: "DIAGNÓSTICO",
+                  style: 2,
+                  required: true,
+                },
+              ],
             },
           ],
         },
