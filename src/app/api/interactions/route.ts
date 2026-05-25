@@ -11,8 +11,10 @@ import { verifyKey } from "discord-interactions";
 import { NextRequest } from "next/server";
 import { AtrasoCommand } from "@/discord/commands/camera-atraso";
 import { ChamadoCommand } from "@/discord/commands/chamado";
+import { IntencaoCommand } from "@/discord/commands/intencao";
 
 const commandRegistry = [
+  IntencaoCommand,
   ChamadoCommand,
   AtrasoCommand,
   EscalarCommand,
