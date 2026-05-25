@@ -58,6 +58,18 @@ export const AtrasoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
+              custom_id: "telefone",
+              label: "NÚMERO DO RESPONSÁVEL",
+              style: 1,
+              required: false,
+            },
+          ],
+        }, // Novo campo opcional
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
               custom_id: "obs",
               label: "OBSERVAÇÕES DO DASHBOARD",
               style: 2,
@@ -85,6 +97,14 @@ export const AtrasoCommand: DiscordCommandModule = {
             fields: [
               { name: "Cliente", value: getValue("cliente"), inline: true },
               { name: "Câmera / UID", value: getValue("camera"), inline: true },
+              {
+                name: "Telefone do Responsável",
+                value:
+                  getValue("telefone") !== "Não informado"
+                    ? getValue("telefone")
+                    : "Não informado",
+                inline: false,
+              },
               {
                 name: "Tempo de Atraso",
                 value: getValue("tempo"),
@@ -202,6 +222,22 @@ export const AtrasoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
+                  custom_id: "telefone",
+                  label: "NÚMERO DO RESPONSÁVEL",
+                  style: 1,
+                  required: false,
+                  value:
+                    getField("Telefone do Responsável") !== "Não informado"
+                      ? getField("Telefone do Responsável")
+                      : "",
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
                   custom_id: "obs",
                   label: "OBSERVAÇÕES",
                   style: 2,
@@ -216,14 +252,14 @@ export const AtrasoCommand: DiscordCommandModule = {
     }
 
     if (customId === "atraso_resolvido") {
-      embed.color = 0x2ecc71; // Altera para Verde Sucesso
+      embed.color = 0x2ecc71;
       embed.fields[historyIndex].value +=
         `\n✅ **Resolvido:** Câmera validada e encerrada por <@${userId}>.`;
-      return { type: 7, data: { embeds: [embed], components: [] } }; // Purga botões
+      return { type: 7, data: { embeds: [embed], components: [] } };
     }
 
     if (customId === "atraso_escalar") {
-      embed.color = 0x34495e; // Altera para cor Neutra Escura
+      embed.color = 0x34495e;
       embed.fields[historyIndex].value +=
         `\n🔺 **Escalado:** Direcionado para gerência técnica devido ao estouro de SLA.`;
       return {
@@ -231,7 +267,7 @@ export const AtrasoCommand: DiscordCommandModule = {
         data: {
           content: `🔺 <@${GABRIEL_ID}>, atenção! Chamado de validação de câmera escalado em regime de urgência.`,
           embeds: [embed],
-          components: [], // Purga botões impossibilitando ações posteriores
+          components: [],
         },
       };
     }
@@ -244,7 +280,7 @@ export const AtrasoCommand: DiscordCommandModule = {
         data: {
           content: `⚠️ <@${COBRAR_USER_ID}>, solicitamos a validação imediata desta câmera pendente informada pela logística!`,
           embeds: [embed],
-          components: interaction.message.components, // Mantém os botões ativos para novas cobranças
+          components: interaction.message.components,
         },
       };
     }
@@ -265,6 +301,12 @@ export const AtrasoCommand: DiscordCommandModule = {
 
     updateField("Cliente", getValue("cliente"));
     updateField("Câmera / UID", getValue("camera"));
+    updateField(
+      "Telefone do Responsável",
+      getValue("telefone") !== "Não informado"
+        ? getValue("telefone")
+        : "Não informado",
+    );
     updateField("Tempo de Atraso", getValue("tempo"));
     updateField("Observações", getValue("obs"));
 
