@@ -9,8 +9,10 @@ import { ContatoCommand } from "@/discord/commands/contato";
 import { EscalarCommand } from "@/discord/commands/escalar";
 import { verifyKey } from "discord-interactions";
 import { NextRequest } from "next/server";
+import { AtrasoCommand } from "@/discord/commands/camera-atraso";
 
 const commandRegistry = [
+  AtrasoCommand,
   EscalarCommand,
   ContatoCommand,
   ContratosCommand,
@@ -82,14 +84,16 @@ export async function POST(req: NextRequest) {
   if (interaction.type === 5) {
     const modalId = interaction.data.custom_id;
 
-    // Roteia submissões de Criação
     const moduleForCreation = commandRegistry.find(
       (m) => m.modalId === modalId,
     );
     if (moduleForCreation && moduleForCreation.handleSubmission) {
       return new Response(
         JSON.stringify(
-          moduleForCreation.handleSubmission(interaction.data.components),
+          moduleForCreation.handleSubmission(
+            interaction.data.components,
+            interaction,
+          ),
         ),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );

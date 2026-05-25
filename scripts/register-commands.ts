@@ -60,6 +60,17 @@ const commands = [
     description: "Gera o relatório quinzenal de palavras-chave negativadas.",
     type: 1,
   },
+  {
+    name: "registrar-camera-atraso",
+    description:
+      "Registra uma câmera com foto atrasada do dashboard para acompanhamento e validação.",
+    type: 1,
+  },
+  {
+    name: "abrir-chamado",
+    description: "Abertura de cbamado de suporte operacional.",
+    type: 1,
+  },
 ];
 
 async function registerCommands() {
