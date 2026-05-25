@@ -9,11 +9,6 @@ const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 // Aqui você centraliza a definição de todos os seus comandos
 const commands = [
   {
-    name: "escalar",
-    description: "Abre o formulário de escalonamento de problemas.",
-    type: 1, // 1 = CHAT_INPUT (Slash Command)
-  },
-  {
     name: "pedido",
     description: "Abre o formulário de solicitação de novo pedido.",
     type: 1,

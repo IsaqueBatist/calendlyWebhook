@@ -6,7 +6,6 @@ import { EdicaoCommand } from "@/discord/commands/edicao";
 import { CancelamentoCommand } from "@/discord/commands/cancelamento";
 import { EnviadoCommand } from "@/discord/commands/enviado";
 import { ContatoCommand } from "@/discord/commands/contato";
-import { EscalarCommand } from "@/discord/commands/escalar";
 import { verifyKey } from "discord-interactions";
 import { NextRequest } from "next/server";
 import { AtrasoCommand } from "@/discord/commands/camera-atraso";
@@ -17,7 +16,6 @@ const commandRegistry = [
   IntencaoCommand,
   ChamadoCommand,
   AtrasoCommand,
-  EscalarCommand,
   ContatoCommand,
   ContratosCommand,
   LogisticaCommand,
