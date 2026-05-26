@@ -1,20 +1,30 @@
-import { InteractionResponseType } from "discord-interactions";
 import type { DiscordCommandModule } from "../types";
 
-const GABRIEL_ID = "1437511382370095217";
-
-export const ChamadoCommand: DiscordCommandModule = {
-  name: "abrir-chamado",
-  modalId: "form_chamado",
-  editModalId: "form_chamado_editar",
-  buttonPrefixes: ["chamado_"],
+export const EdicaoCommand: DiscordCommandModule = {
+  name: "solicitar-edicao",
+  modalId: "form_edicao",
+  editModalId: "form_edicao_editar",
+  buttonPrefixes: ["edicao_"],
 
   renderModal: () => ({
     type: 9,
     data: {
-      custom_id: "form_chamado",
-      title: "Abertura de Chamado de Suporte",
+      custom_id: "form_edicao",
+      title: "Pedido de Nova Edição",
       components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
+              custom_id: "empresa",
+              label: "NOME DA EMPRESA",
+              style: 1,
+              placeholder: "Ex: Construtora Alfa",
+              required: true,
+            },
+          ],
+        },
         {
           type: 1,
           components: [
@@ -23,6 +33,7 @@ export const ChamadoCommand: DiscordCommandModule = {
               custom_id: "cliente",
               label: "CLIENTE",
               style: 1,
+              placeholder: "Ex: João Silva",
               required: true,
             },
           ],
@@ -32,9 +43,24 @@ export const ChamadoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "camera",
-              label: "CÂMERA",
+              custom_id: "cameras",
+              label: "CÂMERAS E UIDs (PODE LISTAR VÁRIAS)",
+              style: 2, // Style 2 = Caixa de texto maior (multilinha)
+              placeholder:
+                "Ex: 3 Câmeras (Cam Norte - UID1, Cam Sul - UID2...)",
+              required: true,
+            },
+          ],
+        },
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
+              custom_id: "link_drive",
+              label: "LINK DO DRIVE (TIMELAPSE CRU)",
               style: 1,
+              placeholder: "Ex: https://drive.google.com/...",
               required: true,
             },
           ],
@@ -44,22 +70,11 @@ export const ChamadoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "tipo",
-              label: "TIPO (Remoto / Físico / Inicio cliente)",
-              style: 1,
-              required: true,
-            },
-          ],
-        },
-        {
-          type: 1,
-          components: [
-            {
-              type: 4,
-              custom_id: "problema",
-              label: "DESCRIÇÃO DO PROBLEMA",
+              custom_id: "obs",
+              label: "OBSERVAÇÕES",
               style: 2,
-              required: true,
+              placeholder: "Logos, orientações de corte, período, etc...",
+              required: false,
             },
           ],
         },
@@ -67,32 +82,41 @@ export const ChamadoCommand: DiscordCommandModule = {
     },
   }),
 
-  // Implementação adequada à assinatura global
-  handleSubmission: (components, interaction) => {
+  handleSubmission: (components) => {
     const getValue = (id: string) =>
       components.find((c: any) => c.components[0].custom_id === id)
-        ?.components[0].value;
+        ?.components[0].value || "Não informado";
 
-    // Captura o ID caso a interação seja fornecida pelo roteador
-    const userId = interaction
-      ? (interaction.member?.user || interaction.user).id
-      : "sistema";
+    const obsValue = getValue("obs");
+    const obsTexto =
+      obsValue && obsValue.trim() !== ""
+        ? obsValue
+        : "Nenhuma observação informada.";
 
     return {
       type: 4,
       data: {
         embeds: [
           {
-            title: "🎫 Chamado Aberto",
-            color: 0xffa500,
+            title: "🎬 Nova Solicitação de Edição",
+            color: 0x9b59b6, // Roxo Marketing
             fields: [
+              { name: "Empresa", value: getValue("empresa"), inline: true },
               { name: "Cliente", value: getValue("cliente"), inline: true },
-              { name: "Câmera", value: getValue("camera"), inline: true },
-              { name: "Tipo", value: getValue("tipo"), inline: false },
-              { name: "Problema", value: getValue("problema"), inline: false },
               {
-                name: "Histórico de Ações",
-                value: `D+0: Chamado aberto por <@${userId}> via WhatsApp.`,
+                name: "Câmeras / UIDs",
+                value: getValue("cameras"),
+                inline: false,
+              },
+              {
+                name: "Link do Drive (Cru)",
+                value: getValue("link_drive"),
+                inline: false,
+              },
+              { name: "Observações", value: obsTexto, inline: false },
+              {
+                name: "Status",
+                value: "Aguardando fila de edição.",
                 inline: false,
               },
             ],
@@ -104,32 +128,21 @@ export const ChamadoCommand: DiscordCommandModule = {
             components: [
               {
                 type: 2,
-                style: 2,
-                custom_id: "chamado_agendado",
-                label: "📅 Agendado (Calendly)",
-              },
-              {
-                type: 2,
                 style: 1,
-                custom_id: "chamado_editar",
-                label: "✏️ Editar Dados",
+                custom_id: "edicao_produzindo",
+                label: "⚙️ Em Produção",
               },
-            ],
-          },
-          {
-            type: 1,
-            components: [
               {
                 type: 2,
                 style: 3,
-                custom_id: "chamado_resolvido",
-                label: "✅ Resolvido",
+                custom_id: "edicao_concluida",
+                label: "✅ Concluído (Entregue)",
               },
               {
                 type: 2,
-                style: 4,
-                custom_id: "chamado_escalar",
-                label: "🚨 Escalar para Gabriel",
+                style: 2,
+                custom_id: "edicao_editar",
+                label: "✏️ Editar Dados",
               },
             ],
           },
@@ -141,21 +154,37 @@ export const ChamadoCommand: DiscordCommandModule = {
   handleComponent: (interaction) => {
     const customId = interaction.data.custom_id;
     const embed = interaction.message.embeds[0];
-    const historyIndex = embed.fields.findIndex(
-      (f: any) => f.name === "Histórico de Ações",
+    const statusIndex = embed.fields.findIndex((f: any) => f.name === "Status");
+    const newComponents = JSON.parse(
+      JSON.stringify(interaction.message.components),
     );
-    const historyText = embed.fields[historyIndex].value;
-    const userId = (interaction.member?.user || interaction.user).id;
 
-    if (customId === "chamado_editar") {
+    // FLUXO DE EDIÇÃO
+    if (customId === "edicao_editar") {
       const getField = (name: string) =>
         embed.fields.find((f: any) => f.name === name)?.value || "";
+
+      const currentObs = getField("Observações");
+
       return {
         type: 9,
         data: {
-          custom_id: "form_chamado_editar",
-          title: "Editar Chamado",
+          custom_id: "form_edicao_editar",
+          title: "Editar Solicitação de Edição",
           components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "empresa",
+                  label: "NOME DA EMPRESA",
+                  style: 1,
+                  required: true,
+                  value: getField("Empresa"),
+                },
+              ],
+            },
             {
               type: 1,
               components: [
@@ -174,37 +203,39 @@ export const ChamadoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
-                  custom_id: "camera",
-                  label: "CÂMERA",
-                  style: 1,
-                  required: true,
-                  value: getField("Câmera"),
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "tipo",
-                  label: "TIPO (Remoto / Físico / Inicio cliente)",
-                  style: 1,
-                  required: true,
-                  value: getField("Tipo"),
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "problema",
-                  label: "DESCRIÇÃO DO PROBLEMA",
+                  custom_id: "cameras",
+                  label: "CÂMERAS E UIDs (PODE LISTAR VÁRIAS)",
                   style: 2,
                   required: true,
-                  value: getField("Problema"),
+                  value: getField("Câmeras / UIDs"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "link_drive",
+                  label: "LINK DO DRIVE (TIMELAPSE CRU)",
+                  style: 1,
+                  required: true,
+                  value: getField("Link do Drive (Cru)"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "obs",
+                  label: "OBSERVAÇÕES",
+                  style: 2,
+                  required: false,
+                  value: currentObs.includes("Nenhuma observação")
+                    ? ""
+                    : currentObs,
                 },
               ],
             },
@@ -213,49 +244,26 @@ export const ChamadoCommand: DiscordCommandModule = {
       };
     }
 
-    const newComponents = JSON.parse(
-      JSON.stringify(interaction.message.components),
-    );
-    const disableButton = (id: string) => {
-      for (const row of newComponents) {
-        const btn = row.components.find((b: any) => b.custom_id === id);
-        if (btn) {
-          btn.disabled = true;
-          break;
-        }
-      }
-    };
-
-    if (customId === "chamado_agendado") {
-      if (historyText.includes("Agendado via Calendly")) {
+    if (customId === "edicao_produzindo") {
+      if (embed.fields[statusIndex].value.includes("Em produção"))
         return {
           type: 7,
           data: { embeds: [embed], components: interaction.message.components },
         };
-      }
-      embed.fields[historyIndex].value +=
-        `\n📅 Agendado via Calendly (Registrado por <@${userId}>).`;
-      disableButton("chamado_agendado");
+      embed.color = 0xf1c40f; // Amarelo
+      embed.fields[statusIndex].value =
+        `⚙️ Em produção (Assumido por <@${(interaction.member?.user || interaction.user).id}>).`;
+      newComponents[0].components.find(
+        (b: any) => b.custom_id === "edicao_produzindo",
+      ).disabled = true;
       return { type: 7, data: { embeds: [embed], components: newComponents } };
     }
 
-    if (customId === "chamado_resolvido") {
-      embed.color = 0x00ff00;
-      embed.fields[historyIndex].value += `\n✅ Resolvido — chamado encerrado.`;
+    if (customId === "edicao_concluida") {
+      embed.color = 0x00ff00; // Verde
+      embed.fields[statusIndex].value =
+        `✅ Edição finalizada e entregue por <@${(interaction.member?.user || interaction.user).id}>.`;
       return { type: 7, data: { embeds: [embed], components: [] } };
-    }
-
-    if (customId === "chamado_escalar") {
-      embed.color = 0xff0000;
-      embed.fields[historyIndex].value += `\n🚨 Escalado para Gabriel.`;
-      return {
-        type: 7,
-        data: {
-          content: `🚨 <@${GABRIEL_ID}>, novo chamado escalado! Assuma em até 24h.`,
-          embeds: [embed],
-          components: [],
-        },
-      };
     }
   },
 
@@ -263,7 +271,8 @@ export const ChamadoCommand: DiscordCommandModule = {
     const components = interaction.data.components;
     const getValue = (id: string) =>
       components.find((c: any) => c.components[0].custom_id === id)
-        ?.components[0].value;
+        ?.components[0].value || "Não informado";
+
     const embed = interaction.message.embeds[0];
 
     const updateField = (name: string, val: string) => {
@@ -271,14 +280,24 @@ export const ChamadoCommand: DiscordCommandModule = {
       if (idx !== -1) embed.fields[idx].value = val;
     };
 
+    const obsValue = getValue("obs");
+    const obsTexto =
+      obsValue && obsValue.trim() !== ""
+        ? obsValue
+        : "Nenhuma observação informada.";
+
+    updateField("Empresa", getValue("empresa"));
     updateField("Cliente", getValue("cliente"));
-    updateField("Câmera", getValue("camera"));
-    updateField("Tipo", getValue("tipo"));
-    updateField("Problema", getValue("problema"));
+    updateField("Câmeras / UIDs", getValue("cameras"));
+    updateField("Link do Drive (Cru)", getValue("link_drive"));
+    updateField("Observações", obsTexto);
 
     return {
-      type: 7,
-      data: { embeds: [embed], components: interaction.message.components },
+      type: 7, // UPDATE_MESSAGE
+      data: {
+        embeds: [embed],
+        components: interaction.message.components,
+      },
     };
   },
 };
