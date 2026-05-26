@@ -45,7 +45,7 @@ export const ChamadoCommand: DiscordCommandModule = {
             {
               type: 4,
               custom_id: "tipo",
-              label: "TIPO (Remoto / Físico / Onboarding)",
+              label: "TIPO (Remoto / Físico / Inicio cliente)",
               style: 1,
               required: true,
             },
@@ -188,7 +188,7 @@ export const ChamadoCommand: DiscordCommandModule = {
                 {
                   type: 4,
                   custom_id: "tipo",
-                  label: "TIPO (Remoto / Físico / Onboarding)",
+                  label: "TIPO (Remoto / Físico / Inicio cliente)",
                   style: 1,
                   required: true,
                   value: getField("Tipo"),
