@@ -380,35 +380,33 @@ export const AtrasoCommand: DiscordCommandModule = {
     };
   },
 
-  handleCrossoverSubmission: (components, interaction) => {
-    // 1. Usa o construtor do ContatoCommand para gerar o Card de Rastreio perfeito!
-    // Como os IDs do modal acima (cliente, camera, problema) são idênticos aos que o form_contato exige, isso vai funcionar de forma nativa.
+  // Adicione a palavra async aqui ⬇️
+  handleCrossoverSubmission: async (components, interaction) => {
     const contatoResponse = ContatoCommand.handleSubmission!(
       components,
       interaction,
     );
 
-    // 2. Despacha o Card de Contato para o canal de escalados
-    // IMPORTANTE: Substitua o ID abaixo pelo ID real do canal #contatos-escalados
-    const CANAL_CONTATOS_ID = "123456789012345678";
+    // COLOQUE O ID REAL DO CANAL AQUI!
+    const CANAL_CONTATOS_ID = "ID_DO_CANAL_AQUI";
 
-    // Dispara assincronamente (não bloqueia a resposta)
-    createChannelMessage(CANAL_CONTATOS_ID, contatoResponse.data).catch(
-      console.error,
-    );
+    try {
+      // Adicione o await aqui ⬇️ para a Vercel não matar o processo
+      await createChannelMessage(CANAL_CONTATOS_ID, contatoResponse.data);
+    } catch (error) {
+      console.error("Erro no crossover:", error);
+    }
 
-    // 3. Atualiza o Card de Atraso atual para indicar que o processo evoluiu
     const embed = interaction.message.embeds[0];
     const historyIndex = embed.fields.findIndex(
       (f: any) => f.name === "Histórico de Ações",
     );
     const userId = (interaction.member?.user || interaction.user).id;
 
-    embed.color = 0x9b59b6; // Roxo (Indicando transição de estado)
+    embed.color = 0x9b59b6;
     embed.fields[historyIndex].value +=
       `\n📞 **Contato Gerado:** Transferido para rastreio por <@${userId}>.`;
 
-    // Retorna atualização da mensagem removendo os botões operacionais para focar na finalização
     return {
       type: 7,
       data: { embeds: [embed], components: interaction.message.components },
