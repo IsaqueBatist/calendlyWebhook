@@ -1,3 +1,7 @@
+import { verifyKey } from "discord-interactions";
+import { NextRequest } from "next/server";
+
+// Importações dos seus módulos
 import { ContratosCommand } from "@/discord/commands/contratos";
 import { LogisticaCommand } from "@/discord/commands/logistica";
 import { RelatorioCommand } from "@/discord/commands/relatorio";
@@ -6,8 +10,6 @@ import { EdicaoCommand } from "@/discord/commands/edicao";
 import { CancelamentoCommand } from "@/discord/commands/cancelamento";
 import { EnviadoCommand } from "@/discord/commands/enviado";
 import { ContatoCommand } from "@/discord/commands/contato";
-import { verifyKey } from "discord-interactions";
-import { NextRequest } from "next/server";
 import { AtrasoCommand } from "@/discord/commands/camera-atraso";
 import { ChamadoCommand } from "@/discord/commands/chamado";
 import { IntencaoCommand } from "@/discord/commands/intencao";
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // 2. COMANDO DE BARRA (/contato)
+  // 2. COMANDO DE BARRA
   if (interaction.type === 2) {
     const commandName = interaction.data.name;
     const module = commandRegistry.find((m) => m.name === commandName);
@@ -65,11 +67,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 3. CLIQUE EM BOTÃO (MESSAGE_COMPONENT) <-- Nova Lógica
+  // 3. CLIQUE EM BOTÃO
   if (interaction.type === 3) {
     const customId = interaction.data.custom_id;
-
-    // Varre o registro buscando qual módulo é dono desse prefixo de botão
     const module = commandRegistry.find((m) =>
       m.buttonPrefixes?.some((prefix) => customId.startsWith(prefix)),
     );
@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
   if (interaction.type === 5) {
     const modalId = interaction.data.custom_id;
 
+    // Submissão Padrão (Criação)
     const moduleForCreation = commandRegistry.find(
       (m) => m.modalId === modalId,
     );
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Roteia submissões de Edição
+    // Submissão de Edição
     const moduleForEdit = commandRegistry.find(
       (m) => m.editModalId === modalId,
     );
@@ -111,19 +112,23 @@ export async function POST(req: NextRequest) {
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }
+
+    // Submissão de Crossover (Atraso -> Contato)
     const moduleForCrossover = commandRegistry.find(
       (m) => m.crossoverModalId === modalId,
     );
     if (moduleForCrossover && moduleForCrossover.handleCrossoverSubmission) {
-      return new Response(
-        JSON.stringify(
-          moduleForCrossover.handleCrossoverSubmission(
-            interaction.data.components,
-            interaction,
-          ),
-        ),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
+      // O AWAIT FOI ADICIONADO ABAIXO: Força a Vercel a esperar o fetch acontecer!
+      const crossoverResult =
+        await moduleForCrossover.handleCrossoverSubmission(
+          interaction.data.components,
+          interaction,
+        );
+
+      return new Response(JSON.stringify(crossoverResult), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
   }
 
