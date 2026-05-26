@@ -30,9 +30,10 @@ export const EnviadoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "modelo",
-              label: "MODELO",
+              custom_id: "modelo_tipo",
+              label: "MODELO E TIPO (4G ou IP)",
               style: 1,
+              placeholder: "Ex: Reolink Trackmix - 4G",
               required: true,
             },
           ],
@@ -45,6 +46,7 @@ export const EnviadoCommand: DiscordCommandModule = {
               custom_id: "chip",
               label: "CHIP (Operadora / ICCID)",
               style: 1,
+              placeholder: "Ex: Vivo - 8955...",
               required: true,
             },
           ],
@@ -54,10 +56,10 @@ export const EnviadoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "tecnologia",
-              label: "TIPO (4G/IP) E FONTE (Solar/Energia)",
+              custom_id: "alimentacao",
+              label: "ALIMENTAÇÃO (Solar ou Elétrica)",
               style: 1,
-              placeholder: "Ex: Reolink IP - Solar",
+              placeholder: "Ex: Solar",
               required: true,
             },
           ],
@@ -103,11 +105,15 @@ export const EnviadoCommand: DiscordCommandModule = {
                 value: getValue("nome_uid"),
                 inline: false,
               },
-              { name: "Modelo", value: getValue("modelo"), inline: true },
+              {
+                name: "Modelo e Tipo",
+                value: getValue("modelo_tipo"),
+                inline: true,
+              },
               { name: "Chip", value: getValue("chip"), inline: true },
               {
-                name: "Especificações",
-                value: getValue("tecnologia"),
+                name: "Alimentação",
+                value: getValue("alimentacao"),
                 inline: false,
               },
               {
@@ -169,11 +175,11 @@ export const EnviadoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
-                  custom_id: "modelo",
-                  label: "MODELO",
+                  custom_id: "modelo_tipo",
+                  label: "MODELO E TIPO (4G ou IP)",
                   style: 1,
                   required: true,
-                  value: getField("Modelo"),
+                  value: getField("Modelo e Tipo"),
                 },
               ],
             },
@@ -195,11 +201,11 @@ export const EnviadoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
-                  custom_id: "tecnologia",
-                  label: "TIPO (4G/IP) E FONTE (Solar/Energia)",
+                  custom_id: "alimentacao",
+                  label: "ALIMENTAÇÃO (Solar ou Elétrica)",
                   style: 1,
                   required: true,
-                  value: getField("Especificações"),
+                  value: getField("Alimentação"),
                 },
               ],
             },
@@ -243,9 +249,9 @@ export const EnviadoCommand: DiscordCommandModule = {
         : "Não informado";
 
     updateField("Câmera / UID", getValue("nome_uid"));
-    updateField("Modelo", getValue("modelo"));
+    updateField("Modelo e Tipo", getValue("modelo_tipo"));
     updateField("Chip", getValue("chip"));
-    updateField("Especificações", getValue("tecnologia"));
+    updateField("Alimentação", getValue("alimentacao"));
     updateField("Código de Rastreio", rastreioTexto);
 
     return {
