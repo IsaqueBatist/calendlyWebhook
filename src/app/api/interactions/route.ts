@@ -111,6 +111,20 @@ export async function POST(req: NextRequest) {
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }
+    const moduleForCrossover = commandRegistry.find(
+      (m) => m.crossoverModalId === modalId,
+    );
+    if (moduleForCrossover && moduleForCrossover.handleCrossoverSubmission) {
+      return new Response(
+        JSON.stringify(
+          moduleForCrossover.handleCrossoverSubmission(
+            interaction.data.components,
+            interaction,
+          ),
+        ),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
   }
 
   return new Response("Unknown interaction", { status: 400 });

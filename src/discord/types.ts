@@ -7,4 +7,6 @@ export interface DiscordCommandModule {
   handleSubmission?: (components: any[], interaction?: any) => any;
   handleEditSubmission?: (interaction: any) => any;
   handleComponent?: (interaction: any) => any;
+  crossoverModalId?: string;
+  handleCrossoverSubmission?: (components: any[], interaction?: any) => any;
 }

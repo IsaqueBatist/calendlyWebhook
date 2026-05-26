@@ -1,5 +1,7 @@
 // src/discord/commands/atraso.ts
+import { createChannelMessage } from "@/lib/discord-rest";
 import type { DiscordCommandModule } from "../types";
+import { ContatoCommand } from "./contato";
 
 const COBRAR_USER_ID = "1490760968039301271";
 const GABRIEL_ID = "1437511382370095217";
@@ -8,6 +10,7 @@ export const AtrasoCommand: DiscordCommandModule = {
   name: "registrar-camera-atraso",
   modalId: "form_atraso",
   editModalId: "form_atraso_editar",
+  crossoverModalId: "form_atraso_para_contato",
   buttonPrefixes: ["atraso_"],
 
   // Renderiza o formulário de cadastro para a logística
@@ -152,6 +155,12 @@ export const AtrasoCommand: DiscordCommandModule = {
                 custom_id: "atraso_escalar",
                 label: "🔺 Escalar para Gabriel",
               },
+              {
+                type: 2,
+                style: 2,
+                custom_id: "atraso_gerar_contato",
+                label: "📞 Criar Contato",
+              },
             ],
           },
         ],
@@ -284,6 +293,61 @@ export const AtrasoCommand: DiscordCommandModule = {
         },
       };
     }
+
+    if (customId === "atraso_gerar_contato") {
+      const getField = (name: string) =>
+        embed.fields.find((f: any) => f.name === name)?.value || "";
+      const tempoAtraso = getField("Tempo de Atraso");
+
+      return {
+        type: 9,
+        data: {
+          custom_id: "form_atraso_para_contato",
+          title: "Transferir para Rastreio de Contato",
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "cliente",
+                  label: "CLIENTE",
+                  style: 1,
+                  required: true,
+                  value: getField("Cliente"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "camera",
+                  label: "CÂMERA",
+                  style: 1,
+                  required: true,
+                  value: getField("Câmera / UID"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "problema",
+                  label: "DESCRIÇÃO DO PROBLEMA",
+                  style: 2,
+                  required: true,
+                  value: `Câmera em atraso reportada pelo dashboard (${tempoAtraso}).`,
+                },
+              ],
+            },
+          ],
+        },
+      };
+    }
   },
 
   // Processa a submissão do modal de edição e atualiza o card sem alterar o histórico de ações
@@ -310,6 +374,41 @@ export const AtrasoCommand: DiscordCommandModule = {
     updateField("Tempo de Atraso", getValue("tempo"));
     updateField("Observações", getValue("obs"));
 
+    return {
+      type: 7,
+      data: { embeds: [embed], components: interaction.message.components },
+    };
+  },
+
+  handleCrossoverSubmission: (components, interaction) => {
+    // 1. Usa o construtor do ContatoCommand para gerar o Card de Rastreio perfeito!
+    // Como os IDs do modal acima (cliente, camera, problema) são idênticos aos que o form_contato exige, isso vai funcionar de forma nativa.
+    const contatoResponse = ContatoCommand.handleSubmission!(
+      components,
+      interaction,
+    );
+
+    // 2. Despacha o Card de Contato para o canal de escalados
+    // IMPORTANTE: Substitua o ID abaixo pelo ID real do canal #contatos-escalados
+    const CANAL_CONTATOS_ID = "123456789012345678";
+
+    // Dispara assincronamente (não bloqueia a resposta)
+    createChannelMessage(CANAL_CONTATOS_ID, contatoResponse.data).catch(
+      console.error,
+    );
+
+    // 3. Atualiza o Card de Atraso atual para indicar que o processo evoluiu
+    const embed = interaction.message.embeds[0];
+    const historyIndex = embed.fields.findIndex(
+      (f: any) => f.name === "Histórico de Ações",
+    );
+    const userId = (interaction.member?.user || interaction.user).id;
+
+    embed.color = 0x9b59b6; // Roxo (Indicando transição de estado)
+    embed.fields[historyIndex].value +=
+      `\n📞 **Contato Gerado:** Transferido para rastreio por <@${userId}>.`;
+
+    // Retorna atualização da mensagem removendo os botões operacionais para focar na finalização
     return {
       type: 7,
       data: { embeds: [embed], components: interaction.message.components },
