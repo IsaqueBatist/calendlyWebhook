@@ -11,7 +11,6 @@ import { CancelamentoCommand } from "@/discord/commands/cancelamento";
 import { EnviadoCommand } from "@/discord/commands/enviado";
 import { ContatoCommand } from "@/discord/commands/contato";
 import { AtrasoCommand } from "@/discord/commands/camera-atraso";
-import { ChamadoCommand } from "@/discord/commands/chamado";
 import { IntencaoCommand } from "@/discord/commands/intencao";
 
 const commandRegistry = [
@@ -71,7 +70,7 @@ export async function POST(req: NextRequest) {
   if (interaction.type === 3) {
     const customId = interaction.data.custom_id;
     const module = commandRegistry.find((m) =>
-      m.buttonPrefixes?.some((prefix) => customId.startsWith(prefix)),
+      m.buttonPrefixes?.some((prefix: any) => customId.startsWith(prefix)),
     );
 
     if (module && module.handleComponent) {

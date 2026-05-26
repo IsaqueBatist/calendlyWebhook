@@ -17,8 +17,8 @@ export const EdicaoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "cliente",
-              label: "CLIENTE",
+              custom_id: "empresa",
+              label: "NOME DA EMPRESA",
               style: 1,
               placeholder: "Ex: Construtora Alfa",
               required: true,
@@ -30,10 +30,24 @@ export const EdicaoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "camera",
-              label: "CÂMERA / UID",
+              custom_id: "cliente",
+              label: "CLIENTE",
               style: 1,
-              placeholder: "Ex: Câmera Norte - A1B2C3D4",
+              placeholder: "Ex: João Silva",
+              required: true,
+            },
+          ],
+        },
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
+              custom_id: "cameras",
+              label: "CÂMERAS E UIDs (PODE LISTAR VÁRIAS)",
+              style: 2, // Style 2 = Caixa de texto maior (multilinha)
+              placeholder:
+                "Ex: 3 Câmeras (Cam Norte - UID1, Cam Sul - UID2...)",
               required: true,
             },
           ],
@@ -56,22 +70,10 @@ export const EdicaoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "detalhes",
-              label: "TIPO / CATEGORIA / PERÍODO",
-              style: 1,
-              placeholder: "Ex: Timelapse - Obras - Janeiro a Março",
-              required: true,
-            },
-          ],
-        },
-        {
-          type: 1,
-          components: [
-            {
-              type: 4,
               custom_id: "obs",
-              label: "OBSERVAÇÕES (Logo, Google Earth, etc)",
+              label: "OBSERVAÇÕES",
               style: 2,
+              placeholder: "Logos, orientações de corte, período, etc...",
               required: false,
             },
           ],
@@ -85,6 +87,12 @@ export const EdicaoCommand: DiscordCommandModule = {
       components.find((c: any) => c.components[0].custom_id === id)
         ?.components[0].value || "Não informado";
 
+    const obsValue = getValue("obs");
+    const obsTexto =
+      obsValue && obsValue.trim() !== ""
+        ? obsValue
+        : "Nenhuma observação informada.";
+
     return {
       type: 4,
       data: {
@@ -93,19 +101,19 @@ export const EdicaoCommand: DiscordCommandModule = {
             title: "🎬 Nova Solicitação de Edição",
             color: 0x9b59b6, // Roxo Marketing
             fields: [
+              { name: "Empresa", value: getValue("empresa"), inline: true },
               { name: "Cliente", value: getValue("cliente"), inline: true },
-              { name: "Câmera / UID", value: getValue("camera"), inline: true },
+              {
+                name: "Câmeras / UIDs",
+                value: getValue("cameras"),
+                inline: false,
+              },
               {
                 name: "Link do Drive (Cru)",
                 value: getValue("link_drive"),
                 inline: false,
               },
-              {
-                name: "Detalhes da Edição",
-                value: getValue("detalhes"),
-                inline: false,
-              },
-              { name: "Observações", value: getValue("obs"), inline: false },
+              { name: "Observações", value: obsTexto, inline: false },
               {
                 name: "Status",
                 value: "Aguardando fila de edição.",
@@ -151,9 +159,12 @@ export const EdicaoCommand: DiscordCommandModule = {
       JSON.stringify(interaction.message.components),
     );
 
+    // FLUXO DE EDIÇÃO
     if (customId === "edicao_editar") {
       const getField = (name: string) =>
         embed.fields.find((f: any) => f.name === name)?.value || "";
+
+      const currentObs = getField("Observações");
 
       return {
         type: 9,
@@ -161,6 +172,19 @@ export const EdicaoCommand: DiscordCommandModule = {
           custom_id: "form_edicao_editar",
           title: "Editar Solicitação de Edição",
           components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "empresa",
+                  label: "NOME DA EMPRESA",
+                  style: 1,
+                  required: true,
+                  value: getField("Empresa"),
+                },
+              ],
+            },
             {
               type: 1,
               components: [
@@ -179,11 +203,11 @@ export const EdicaoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
-                  custom_id: "camera",
-                  label: "CÂMERA / UID",
-                  style: 1,
+                  custom_id: "cameras",
+                  label: "CÂMERAS E UIDs (PODE LISTAR VÁRIAS)",
+                  style: 2,
                   required: true,
-                  value: getField("Câmera / UID"),
+                  value: getField("Câmeras / UIDs"),
                 },
               ],
             },
@@ -205,24 +229,13 @@ export const EdicaoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
-                  custom_id: "detalhes",
-                  label: "TIPO / CATEGORIA / PERÍODO",
-                  style: 1,
-                  required: true,
-                  value: getField("Detalhes da Edição"),
-                },
-              ],
-            },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
                   custom_id: "obs",
                   label: "OBSERVAÇÕES",
                   style: 2,
                   required: false,
-                  value: getField("Observações"),
+                  value: currentObs.includes("Nenhuma observação")
+                    ? ""
+                    : currentObs,
                 },
               ],
             },
@@ -247,7 +260,7 @@ export const EdicaoCommand: DiscordCommandModule = {
     }
 
     if (customId === "edicao_concluida") {
-      embed.color = 0x00ff00;
+      embed.color = 0x00ff00; // Verde
       embed.fields[statusIndex].value =
         `✅ Edição finalizada e entregue por <@${(interaction.member?.user || interaction.user).id}>.`;
       return { type: 7, data: { embeds: [embed], components: [] } };
@@ -267,11 +280,17 @@ export const EdicaoCommand: DiscordCommandModule = {
       if (idx !== -1) embed.fields[idx].value = val;
     };
 
+    const obsValue = getValue("obs");
+    const obsTexto =
+      obsValue && obsValue.trim() !== ""
+        ? obsValue
+        : "Nenhuma observação informada.";
+
+    updateField("Empresa", getValue("empresa"));
     updateField("Cliente", getValue("cliente"));
-    updateField("Câmera / UID", getValue("camera"));
+    updateField("Câmeras / UIDs", getValue("cameras"));
     updateField("Link do Drive (Cru)", getValue("link_drive"));
-    updateField("Detalhes da Edição", getValue("detalhes"));
-    updateField("Observações", getValue("obs"));
+    updateField("Observações", obsTexto);
 
     return {
       type: 7, // UPDATE_MESSAGE
