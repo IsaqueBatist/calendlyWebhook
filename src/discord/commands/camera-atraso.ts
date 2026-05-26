@@ -388,7 +388,7 @@ export const AtrasoCommand: DiscordCommandModule = {
     );
 
     // COLOQUE O ID REAL DO CANAL AQUI!
-    const CANAL_CONTATOS_ID = "ID_DO_CANAL_AQUI";
+    const CANAL_CONTATOS_ID = "1504888981379219558";
 
     try {
       // Adicione o await aqui ⬇️ para a Vercel não matar o processo
