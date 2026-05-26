@@ -1,4 +1,3 @@
-// src/discord/commands/logistica.ts
 import type { DiscordCommandModule } from "../types";
 
 export const LogisticaCommand: DiscordCommandModule = {
@@ -17,9 +16,10 @@ export const LogisticaCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "resp",
-              label: "VENDEDOR RESPONSÁVEL",
+              custom_id: "resp_nota",
+              label: "VENDEDOR RESP. / NF EMITIDA?",
               style: 1,
+              placeholder: "Ex: João Silva - NF: Sim",
               required: true,
             },
           ],
@@ -55,9 +55,10 @@ export const LogisticaCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "endereco",
-              label: "ENDEREÇO COMPLETO",
-              style: 2,
+              custom_id: "alimentacao",
+              label: "ALIMENTAÇÃO (Solar ou Elétrica)",
+              style: 1,
+              placeholder: "Ex: Solar",
               required: true,
             },
           ],
@@ -67,10 +68,9 @@ export const LogisticaCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "nota",
-              label: "NOTA FISCAL EMITIDA?",
-              style: 1,
-              placeholder: "Sim / Não",
+              custom_id: "endereco",
+              label: "ENDEREÇO COMPLETO",
+              style: 2, // Multi-linha para caber o endereço direitinho
               required: true,
             },
           ],
@@ -82,7 +82,7 @@ export const LogisticaCommand: DiscordCommandModule = {
   handleSubmission: (components) => {
     const getValue = (id: string) =>
       components.find((c: any) => c.components[0].custom_id === id)
-        ?.components[0].value;
+        ?.components[0].value || "Não informado";
 
     return {
       type: 4,
@@ -92,7 +92,11 @@ export const LogisticaCommand: DiscordCommandModule = {
             title: "📦 Novo Pedido para Logística",
             color: 0x3498db, // Azul
             fields: [
-              { name: "Vendedor", value: getValue("resp"), inline: true },
+              {
+                name: "Vendedor / NF Emitida",
+                value: getValue("resp_nota"),
+                inline: true,
+              },
               {
                 name: "Empresa / CNPJ",
                 value: getValue("empresa"),
@@ -103,8 +107,16 @@ export const LogisticaCommand: DiscordCommandModule = {
                 value: getValue("equip"),
                 inline: false,
               },
-              { name: "Endereço", value: getValue("endereco"), inline: false },
-              { name: "NF Emitida?", value: getValue("nota"), inline: true },
+              {
+                name: "Alimentação",
+                value: getValue("alimentacao"),
+                inline: false,
+              },
+              {
+                name: "Endereço",
+                value: getValue("endereco"),
+                inline: false,
+              },
               {
                 name: "Status do Envio",
                 value: "Pendente de separação.",
@@ -151,23 +163,28 @@ export const LogisticaCommand: DiscordCommandModule = {
     );
 
     if (customId === "log_separando") {
+      // Proteção de Idempotência
       if (embed.fields[statusIndex].value.includes("Em separação"))
         return {
           type: 7,
           data: { embeds: [embed], components: interaction.message.components },
         };
+
       embed.color = 0xf1c40f; // Amarelo
       embed.fields[statusIndex].value =
         `🚧 Em separação por <@${interaction.member.user.id}>.`;
+
       if (btnSeparando) btnSeparando.disabled = true;
+
       return { type: 7, data: { embeds: [embed], components: newComponents } };
     }
 
     if (customId === "log_enviado") {
-      embed.color = 0x00ff00;
+      embed.color = 0x00ff00; // Verde
       embed.fields[statusIndex].value =
         `🚚 Despachado por <@${interaction.member.user.id}>.`;
-      return { type: 7, data: { embeds: [embed], components: [] } }; // Finaliza o fluxo
+
+      return { type: 7, data: { embeds: [embed], components: [] } }; // Finaliza o fluxo removendo os botões
     }
   },
 };
