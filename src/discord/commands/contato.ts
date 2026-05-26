@@ -43,6 +43,19 @@ export const ContatoCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
+              custom_id: "telefone",
+              label: "TELEFONE DO CONTATO",
+              style: 1,
+              placeholder: "Ex: 11999999999",
+              required: true,
+            },
+          ],
+        },
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
               custom_id: "problema",
               label: "DESCRIÇÃO DO PROBLEMA",
               style: 2,
@@ -69,6 +82,7 @@ export const ContatoCommand: DiscordCommandModule = {
             fields: [
               { name: "Cliente", value: getValue("cliente"), inline: true },
               { name: "Câmera", value: getValue("camera"), inline: true },
+              { name: "Telefone", value: getValue("telefone"), inline: false },
               { name: "Problema", value: getValue("problema"), inline: false },
               {
                 name: "Histórico de Ações",
@@ -80,7 +94,7 @@ export const ContatoCommand: DiscordCommandModule = {
         ],
         components: [
           {
-            type: 1, // Linha 1: Controles de Rastreamento
+            type: 1,
             components: [
               {
                 type: 2,
@@ -99,11 +113,11 @@ export const ContatoCommand: DiscordCommandModule = {
                 style: 1,
                 custom_id: "contato_editar",
                 label: "✏️ Editar Dados",
-              }, // Botão de Edição
+              },
             ],
           },
           {
-            type: 1, // Linha 2: Controles de Fechamento
+            type: 1,
             components: [
               {
                 type: 2,
@@ -128,7 +142,6 @@ export const ContatoCommand: DiscordCommandModule = {
     const customId = interaction.data.custom_id;
     const embed = interaction.message.embeds[0];
 
-    // Invocação do Modal de Edição (Retorna status 9)
     if (customId === "contato_editar") {
       const getField = (name: string) =>
         embed.fields.find((f: any) => f.name === name)?.value || "";
@@ -139,7 +152,6 @@ export const ContatoCommand: DiscordCommandModule = {
           custom_id: "form_contato_editar",
           title: "Editar Dados do Registro",
           components: [
-            // A propriedade 'value' injeta o estado atual do servidor na tela do cliente
             {
               type: 1,
               components: [
@@ -171,6 +183,19 @@ export const ContatoCommand: DiscordCommandModule = {
               components: [
                 {
                   type: 4,
+                  custom_id: "telefone",
+                  label: "TELEFONE DO CONTATO",
+                  style: 1,
+                  required: true,
+                  value: getField("Telefone"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
                   custom_id: "problema",
                   label: "DESCRIÇÃO DO PROBLEMA",
                   style: 2,
@@ -188,12 +213,10 @@ export const ContatoCommand: DiscordCommandModule = {
       (f: any) => f.name === "Histórico de Ações",
     );
     const historyText = embed.fields[historyIndex].value;
-
     const newComponents = JSON.parse(
       JSON.stringify(interaction.message.components),
     );
 
-    // Varredura profunda em múltiplas Action Rows para encontrar e desabilitar o botão
     const disableButton = (id: string) => {
       for (const row of newComponents) {
         const btn = row.components.find((b: any) => b.custom_id === id);
@@ -250,7 +273,6 @@ export const ContatoCommand: DiscordCommandModule = {
     return { type: 7, data: { embeds: [embed], components: newComponents } };
   },
 
-  // Novo tratador para injetar os dados modificados na mensagem existente
   handleEditSubmission: (interaction) => {
     const components = interaction.data.components;
     const getValue = (id: string) =>
@@ -259,7 +281,6 @@ export const ContatoCommand: DiscordCommandModule = {
 
     const embed = interaction.message.embeds[0];
 
-    // Mutação limpa dos campos estáticos
     const updateField = (name: string, val: string) => {
       const idx = embed.fields.findIndex((f: any) => f.name === name);
       if (idx !== -1) embed.fields[idx].value = val;
@@ -267,10 +288,11 @@ export const ContatoCommand: DiscordCommandModule = {
 
     updateField("Cliente", getValue("cliente"));
     updateField("Câmera", getValue("camera"));
+    updateField("Telefone", getValue("telefone"));
     updateField("Problema", getValue("problema"));
 
     return {
-      type: 7, // UPDATE_MESSAGE
+      type: 7,
       data: { embeds: [embed], components: interaction.message.components },
     };
   },

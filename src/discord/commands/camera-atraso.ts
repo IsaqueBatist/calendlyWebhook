@@ -297,7 +297,12 @@ export const AtrasoCommand: DiscordCommandModule = {
     if (customId === "atraso_gerar_contato") {
       const getField = (name: string) =>
         embed.fields.find((f: any) => f.name === name)?.value || "";
+
       const tempoAtraso = getField("Tempo de Atraso");
+
+      const telefoneOriginal = getField("Telefone do Responsável");
+      const telefoneValue =
+        telefoneOriginal !== "Não informado" ? telefoneOriginal : "";
 
       return {
         type: 9,
@@ -328,6 +333,19 @@ export const AtrasoCommand: DiscordCommandModule = {
                   style: 1,
                   required: true,
                   value: getField("Câmera / UID"),
+                },
+              ],
+            },
+            {
+              type: 1,
+              components: [
+                {
+                  type: 4,
+                  custom_id: "telefone",
+                  label: "TELEFONE DO CONTATO",
+                  style: 1,
+                  required: true,
+                  value: telefoneValue, // Auto-preenche se o registro de atraso tiver o número!
                 },
               ],
             },
