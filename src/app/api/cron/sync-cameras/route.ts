@@ -156,6 +156,8 @@ export async function GET(req: Request) {
             components,
           });
 
+          console.log("Resposta Discord:", JSON.stringify(messageData));
+
           // Se a mensagem foi enviada, salva no Redis!
           if (messageData && messageData.id) {
             await redis.set(`camera_atrasada_${idCamera}`, messageData.id);
