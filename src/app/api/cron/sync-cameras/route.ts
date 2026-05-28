@@ -11,7 +11,7 @@ const redis = Redis.fromEnv();
 export const maxDuration = 60;
 
 // ID do canal do Discord onde os alertas serão postados
-const CANAL_ATRASOS_ID = "COLOQUE_AQUI_O_ID_DO_SEU_CANAL";
+const CANAL_ATRASOS_ID = "1508474554325008607";
 
 export async function GET(req: Request) {
   // 1. Proteção de Segurança: Verifica se quem está chamando tem a senha
@@ -71,8 +71,8 @@ export async function GET(req: Request) {
           let clienteNome = "Buscar manualmente";
 
           try {
-            // Converte a URL de "fotos" para "edit" para pegar o UID
-            const urlEdit = urlFotos.replace("/fotos/", "/edit/");
+            const BASE_URL = "https://camera.sentric.com.br";
+            const urlEdit = `${BASE_URL}${urlFotos.replace("/fotos/", "/edit/")}`;
             const resEdit = await fetch(urlEdit, {
               headers: { Cookie: cookie },
             });
