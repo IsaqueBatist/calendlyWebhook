@@ -1,8 +1,11 @@
 // src/app/api/cron/sync-cameras/route.ts
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
+
+// Inicializa o banco (ele puxa as variáveis UPSTASH automaticamente do .env!)
 import { createChannelMessage, editChannelMessage } from "@/lib/discord-rest";
+const redis = Redis.fromEnv();
 
 // Aumenta o limite de tempo da Vercel para 60 segundos (limite do plano Hobby)
 export const maxDuration = 60;
@@ -57,8 +60,8 @@ export async function GET(req: Request) {
 
         camerasAtrasadasAgora.push(idCamera);
 
-        // 3. Verifica no Vercel KV se já enviamos alerta para essa câmera
-        const msgIdNoDiscord = await kv.get(`camera_atrasada_${idCamera}`);
+        // 3. Verifica no Vercel redis se já enviamos alerta para essa câmera
+        const msgIdNoDiscord = await redis.get(`camera_atrasada_${idCamera}`);
 
         // Se NÃO tem mensagem no Discord, é uma câmera NOVA atrasada
         if (!msgIdNoDiscord) {
@@ -155,7 +158,7 @@ export async function GET(req: Request) {
 
           // Se a mensagem foi enviada, salva no Redis!
           if (messageData && messageData.id) {
-            await kv.set(`camera_atrasada_${idCamera}`, messageData.id);
+            await redis.set(`camera_atrasada_${idCamera}`, messageData.id);
           }
         }
       }
@@ -163,14 +166,14 @@ export async function GET(req: Request) {
 
     // 4. Fechamento Automático de Câmeras Resolvidas
     // Pegamos todas as câmeras que estão no Redis atualmente
-    const chavesNoRedis = await kv.keys("camera_atrasada_*");
+    const chavesNoRedis = await redis.keys("camera_atrasada_*");
 
     for (const chave of chavesNoRedis) {
       const idCamera = chave.replace("camera_atrasada_", "");
 
       // Se a câmera está no Redis, mas NÃO está mais na lista de atrasadas do site
       if (!camerasAtrasadasAgora.includes(idCamera)) {
-        const msgId = (await kv.get(chave)) as string;
+        const msgId = (await redis.get(chave)) as string;
 
         if (msgId) {
           // Edita a mensagem no Discord avisando que foi resolvido
@@ -188,7 +191,7 @@ export async function GET(req: Request) {
         }
 
         // Remove do Banco de Dados para não processar mais
-        await kv.del(chave);
+        await redis.del(chave);
       }
     }
 
