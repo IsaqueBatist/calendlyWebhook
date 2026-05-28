@@ -80,9 +80,7 @@ export async function GET(req: Request) {
             const $edit = cheerio.load(htmlEdit);
 
             // Tenta pegar o UID (Ajuse o seletor name= abaixo se não funcionar de primeira)
-            const inputUid =
-              $edit("input[name='identificacao']").val() ||
-              $edit("input[name='url']").val();
+            const inputUid = $edit("input[name='camera_uid']").val();
             if (inputUid) uid = String(inputUid);
 
             // Fetch na página de Previsão para pegar o telefone (Simplificado)
@@ -91,8 +89,36 @@ export async function GET(req: Request) {
               { headers: { Cookie: cookie } },
             );
             const htmlPrev = await resPrev.text();
-            // Lógica simplificada: tenta achar o telefone usando regex básico ou cheerio baseado na sua estrutura
-            // Como não tenho o HTML da previsão, recomendo inicialmente deixar manual ou refinar depois
+            const $prev = cheerio.load(htmlPrev);
+
+            // Pega o UUID da câmera a partir da URL de edição
+            // urlFotos ex: "/admin/cameras/fotos/UUID1/UUID2" → precisamos do UUID2 (câmera)
+            const partes = urlFotos.split("/");
+            const uuidCamera = partes[partes.length - 1]; // último segmento
+
+            // Encontra o card cujo select tem o UUID da câmera
+            const selectDaCamera = $prev(
+              `select.camera_uuid option[value="${uuidCamera}"]`,
+            );
+
+            if (selectDaCamera.length) {
+              // Sobe até o card pai e pega o primeiro input de telefone
+              const cardPai = selectDaCamera.closest(".card");
+              const numeroInput = cardPai.find("input[name='number']").val();
+              if (numeroInput && String(numeroInput).trim() !== "") {
+                telefone = String(numeroInput).trim();
+              }
+              // Fallback: tenta o primeiro número adicional
+              if (telefone === "Não informado") {
+                const numeroAdicional = cardPai
+                  .find("input[name='number_up']")
+                  .first()
+                  .val();
+                if (numeroAdicional && String(numeroAdicional).trim() !== "") {
+                  telefone = String(numeroAdicional).trim();
+                }
+              }
+            }
           } catch (e) {
             console.error("Erro ao raspar detalhes secundários", e);
           }
