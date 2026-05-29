@@ -9,7 +9,7 @@ const redis = Redis.fromEnv();
 // Limite de tempo da Vercel para 60 segundos (plano Hobby)
 export const maxDuration = 60;
 
-const CANAL_ATRASOS_ID = "1508474554325008607";
+const CANAL_ATRASOS_ID = "1509881188104278046";
 
 export async function GET(req: Request) {
   // 1. Proteção de Segurança
