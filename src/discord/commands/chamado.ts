@@ -185,19 +185,6 @@ export const ChamadoCommand: DiscordCommandModule = {
                 },
               ],
             },
-            {
-              type: 1,
-              components: [
-                {
-                  type: 4,
-                  custom_id: "testes_tec",
-                  label: "TESTES N1 JÁ REALIZADOS",
-                  style: 2, // Caixa grande
-                  placeholder: "Ex: Reiniciei a câmera, verifiquei o chip...",
-                  required: true,
-                },
-              ],
-            },
           ],
         },
       };
@@ -326,11 +313,6 @@ export const ChamadoCommand: DiscordCommandModule = {
             {
               name: "Problema Técnico",
               value: getValue("problema_tec"),
-              inline: false,
-            },
-            {
-              name: "Testes N1 Realizados",
-              value: getValue("testes_tec"),
               inline: false,
             },
             { name: "Escalado por", value: `<@${userId}>`, inline: false },
