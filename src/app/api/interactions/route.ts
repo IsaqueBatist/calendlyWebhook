@@ -12,11 +12,15 @@ import { EnviadoCommand } from "@/discord/commands/enviado";
 import { ContatoCommand } from "@/discord/commands/contato";
 import { AtrasoCommand } from "@/discord/commands/camera-atraso";
 import { IntencaoCommand } from "@/discord/commands/intencao";
-import { ChamadoCommand } from "@/discord/commands/chamado";
+import {
+  ChamadoCommand,
+  ChamadoTecnicoCommand,
+} from "@/discord/commands/chamado";
 
 const commandRegistry = [
   IntencaoCommand,
   ChamadoCommand,
+  ChamadoTecnicoCommand,
   AtrasoCommand,
   ContatoCommand,
   ContratosCommand,
