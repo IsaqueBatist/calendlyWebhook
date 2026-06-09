@@ -95,15 +95,15 @@ export async function POST(req: NextRequest) {
       (m) => m.modalId === modalId,
     );
     if (moduleForCreation && moduleForCreation.handleSubmission) {
-      return new Response(
-        JSON.stringify(
-          moduleForCreation.handleSubmission(
-            interaction.data.components,
-            interaction,
-          ),
-        ),
-        { status: 200, headers: { "Content-Type": "application/json" } },
+      // ADICIONADO O AWAIT AQUI
+      const creationResult = await moduleForCreation.handleSubmission(
+        interaction.data.components,
+        interaction,
       );
+      return new Response(JSON.stringify(creationResult), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Submissão de Edição
@@ -111,10 +111,12 @@ export async function POST(req: NextRequest) {
       (m) => m.editModalId === modalId,
     );
     if (moduleForEdit && moduleForEdit.handleEditSubmission) {
-      return new Response(
-        JSON.stringify(moduleForEdit.handleEditSubmission(interaction)),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
+      // ADICIONADO O AWAIT AQUI (Isso resolve o erro da devolução!)
+      const editResult = await moduleForEdit.handleEditSubmission(interaction);
+      return new Response(JSON.stringify(editResult), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Submissão de Crossover (Atraso -> Contato)
@@ -122,13 +124,11 @@ export async function POST(req: NextRequest) {
       (m) => m.crossoverModalId === modalId,
     );
     if (moduleForCrossover && moduleForCrossover.handleCrossoverSubmission) {
-      // O AWAIT FOI ADICIONADO ABAIXO: Força a Vercel a esperar o fetch acontecer!
       const crossoverResult =
         await moduleForCrossover.handleCrossoverSubmission(
           interaction.data.components,
           interaction,
         );
-
       return new Response(JSON.stringify(crossoverResult), {
         status: 200,
         headers: { "Content-Type": "application/json" },
