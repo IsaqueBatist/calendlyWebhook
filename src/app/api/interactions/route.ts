@@ -16,6 +16,7 @@ import {
   ChamadoCommand,
   ChamadoTecnicoCommand,
 } from "@/discord/commands/chamado";
+import SubstituicaoCameraModule from "@/discord/commands/substituicao-camera";
 
 const commandRegistry = [
   IntencaoCommand,
@@ -30,6 +31,7 @@ const commandRegistry = [
   EdicaoCommand,
   CancelamentoCommand,
   EnviadoCommand,
+  SubstituicaoCameraModule,
 ];
 
 export async function POST(req: NextRequest) {
