@@ -72,6 +72,11 @@ const commands = [
       "Registra a intenção de cancelamento informada pelo cliente para gestão de retenção.",
     type: 1,
   },
+  {
+    name: "solicitar-substituicao",
+    description: "Solicita aprovação para substituição de câmera (Gabriel).",
+    type: 1,
+  },
 ];
 
 async function registerCommands() {

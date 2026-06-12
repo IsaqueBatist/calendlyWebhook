@@ -1,7 +1,6 @@
 import { DiscordCommandModule } from "@/discord/types";
 import { createChannelMessage, editChannelMessage } from "@/lib/discord-rest";
 
-const CANAL_APROVACAO = "1515027880407597156";
 const CANAL_LOGISTICA = "1483820330802741340";
 const GABRIEL_ID = "1437511382370095217";
 
