@@ -5,23 +5,36 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // 1. Faz o parse do JSON enviado pelo Make
     const body = await req.json();
-    const { status, evento, descricao } = body;
 
-    console.log("=== MAKE.COM (GOOGLE CALENDAR) WEBHOOK ===");
+    // Log de Raio-X: Mostra exatamente como o Make enviou o JSON
+    console.log("=== BODY COMPLETO RECEBIDO DO MAKE ===");
+    console.log(JSON.stringify(body, null, 2));
+
+    // Captura as variáveis aceitando tanto minúsculas quanto a primeira maiúscula
+    const status = body.status || body.Status;
+    const evento = body.evento || body.Evento;
+    const descricao = body.descricao || body.Descricao;
+
+    console.log("=== DADOS EXTRAÍDOS ===");
     console.log("Status:", status);
     console.log("Evento:", evento);
 
-    // 2. Filtra apenas eventos confirmados (quando a reunião é criada)
-    // O Google Calendar envia o status "confirmed" para eventos criados/atualizados
+    // 2. Filtra apenas eventos confirmados
     if (status !== "confirmed") {
       console.log("Evento ignorado. Status:", status);
-      return NextResponse.json({ received: true, handled: false, reason: "Status não é confirmed" });
+      return NextResponse.json({
+        received: true,
+        handled: false,
+        reason: "Status não é confirmed",
+      });
     }
 
-    // 3. Extrai Nome e E-mail de dentro da descrição (gerada pelo Calendly no Google Calendar)
-    // Usamos expressões regulares para pescar a informação de dentro do texto gigante
-    const nameMatch = descricao?.match(/Nome:\s*(.+)/i) || descricao?.match(/Name:\s*(.+)/i);
-    const emailMatch = descricao?.match(/E-mail:\s*([^\s<]+)/i) || descricao?.match(/Email:\s*([^\s<]+)/i);
+    // 3. Extrai Nome e E-mail de dentro da descrição
+    const nameMatch =
+      descricao?.match(/Nome:\s*(.+)/i) || descricao?.match(/Name:\s*(.+)/i);
+    const emailMatch =
+      descricao?.match(/E-mail:\s*([^\s<]+)/i) ||
+      descricao?.match(/Email:\s*([^\s<]+)/i);
 
     const name = nameMatch ? nameMatch[1].trim() : "Não informado";
     const email = emailMatch ? emailMatch[1].trim() : "Não informado";
@@ -36,7 +49,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Formata um pedaço da descrição para colocar no Discord (limite de caracteres)
+    // Formata a descrição para não estourar o limite do Discord
     const descricaoResumida = descricao
       ? descricao.substring(0, 800) + (descricao.length > 800 ? "..." : "")
       : "Sem detalhes adicionais";
@@ -50,12 +63,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           fields: [
             { name: "👤 Nome", value: name, inline: true },
             { name: "📧 E-mail", value: email, inline: true },
-            { name: "📋 Reunião", value: evento || "Reunião Agendada", inline: false },
+            {
+              name: "📋 Reunião",
+              value: evento || "Reunião Agendada",
+              inline: false,
+            },
             {
               name: "📝 Informações do Agendamento (Respostas / Links)",
               value: descricaoResumida,
-              inline: false
-            }
+              inline: false,
+            },
           ],
           footer: { text: "Automação Calendly (via Make) → Discord" },
           timestamp: new Date().toISOString(),
@@ -65,10 +82,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log("✅ Webhook processado e enviado para o Discord com sucesso.");
     return NextResponse.json({ received: true, handled: true });
-
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[Webhook] Falha ao processar requisição do Make:", message);
+    console.error("[Webhook] Falha ao processar requisição:", message);
     return NextResponse.json(
       { error: "Failed to process webhook", details: message },
       { status: 500 },
