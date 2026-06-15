@@ -1,120 +1,77 @@
-// src/app/api/webhooks/calendly/route.ts
-//
-// Next.js App Router API Route
-// Receives Calendly webhook events and notifies Discord.
-//
-// Endpoint: POST /api/webhooks/calendly
-
 import { NextRequest, NextResponse } from "next/server";
-import type { CalendlyWebhookPayload } from "@/lib/calendly.types";
 import { sendDiscordMessage } from "@/lib/discord";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/**
- * Formats an ISO 8601 date string to a human-readable BR format.
- * e.g. "2025-06-01T14:00:00.000000Z" → "01/06/2025 às 14:00 (UTC)"
- */
-function formatDate(iso: string): string {
-  try {
-    const date = new Date(iso);
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Sao_Paulo",
-      timeZoneName: "short",
-    }).format(date);
-  } catch {
-    return iso;
-  }
-}
-
-// ─── Route Handler ───────────────────────────────────────────────────────────
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  // 1. Parse body
-  let payload: CalendlyWebhookPayload;
   try {
-    payload = (await req.json()) as CalendlyWebhookPayload;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+    // 1. Faz o parse do JSON enviado pelo Make
+    const body = await req.json();
+    const { status, evento, descricao } = body;
 
-  console.log("=== CALENDLY WEBHOOK ===");
-  console.log("event:", payload.event);
-  console.log("DISCORD_WEBHOOK_URL:", process.env.DISCORD_WEBHOOK_URL);
-  console.log("payload.payload.name:", payload.payload?.name);
+    console.log("=== MAKE.COM (GOOGLE CALENDAR) WEBHOOK ===");
+    console.log("Status:", status);
+    console.log("Evento:", evento);
 
-  // 2. Only handle invitee.created events
-  if (payload.event !== "invitee.created") {
-    // Acknowledge but do nothing for other event types
-    return NextResponse.json({ received: true, handled: false });
-  }
+    // 2. Filtra apenas eventos confirmados (quando a reunião é criada)
+    // O Google Calendar envia o status "confirmed" para eventos criados/atualizados
+    if (status !== "confirmed") {
+      console.log("Evento ignorado. Status:", status);
+      return NextResponse.json({ received: true, handled: false, reason: "Status não é confirmed" });
+    }
 
-  // 3. Extract data from the payload
-  const invitee = payload.payload;
-  const event = invitee.scheduled_event;
+    // 3. Extrai Nome e E-mail de dentro da descrição (gerada pelo Calendly no Google Calendar)
+    // Usamos expressões regulares para pescar a informação de dentro do texto gigante
+    const nameMatch = descricao?.match(/Nome:\s*(.+)/i) || descricao?.match(/Name:\s*(.+)/i);
+    const emailMatch = descricao?.match(/E-mail:\s*([^\s<]+)/i) || descricao?.match(/Email:\s*([^\s<]+)/i);
 
-  const name = invitee.name;
-  const email = invitee.email;
-  const meetingName = event.name;
-  const startTime = formatDate(event.start_time);
-  const endTime = formatDate(event.end_time);
-  const timezone = invitee.timezone;
+    const name = nameMatch ? nameMatch[1].trim() : "Não informado";
+    const email = emailMatch ? emailMatch[1].trim() : "Não informado";
 
-  // Optional: meeting link (e.g. Google Meet, Zoom)
-  const joinUrl = event.location?.join_url ?? event.location?.location ?? null;
+    // 4. Verifica a URL do Webhook do Discord no seu .env
+    const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!discordWebhookUrl) {
+      console.error("[Webhook] DISCORD_WEBHOOK_URL não configurada no .env.");
+      return NextResponse.json(
+        { error: "Server misconfiguration: missing DISCORD_WEBHOOK_URL" },
+        { status: 500 },
+      );
+    }
 
-  // 4. Build and send Discord message
-  const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!discordWebhookUrl) {
-    console.error("[Calendly Webhook] DISCORD_WEBHOOK_URL is not set.");
-    return NextResponse.json(
-      { error: "Server misconfiguration: missing DISCORD_WEBHOOK_URL" },
-      { status: 500 },
-    );
-  }
+    // Formata um pedaço da descrição para colocar no Discord (limite de caracteres)
+    const descricaoResumida = descricao
+      ? descricao.substring(0, 800) + (descricao.length > 800 ? "..." : "")
+      : "Sem detalhes adicionais";
 
-  try {
+    // 5. Constrói e envia a mensagem para o Discord
     await sendDiscordMessage(discordWebhookUrl, {
       embeds: [
         {
           title: "📅 Novo Agendamento Confirmado!",
-          color: 0x006bff, // Calendly blue
+          color: 0x006bff, // Azul padrão do Calendly
           fields: [
             { name: "👤 Nome", value: name, inline: true },
             { name: "📧 E-mail", value: email, inline: true },
-            { name: "📋 Reunião", value: meetingName, inline: false },
-            { name: "🕐 Início", value: startTime, inline: true },
-            { name: "🕑 Término", value: endTime, inline: true },
+            { name: "📋 Reunião", value: evento || "Reunião Agendada", inline: false },
             {
-              name: "🌎 Fuso horário do convidado",
-              value: timezone,
-              inline: false,
-            },
-            ...(joinUrl
-              ? [{ name: "🔗 Link da reunião", value: joinUrl, inline: false }]
-              : []),
+              name: "📝 Informações do Agendamento (Respostas / Links)",
+              value: descricaoResumida,
+              inline: false
+            }
           ],
-          footer: { text: "Calendly → Discord" },
-          timestamp: payload.created_at,
+          footer: { text: "Automação Calendly (via Make) → Discord" },
+          timestamp: new Date().toISOString(),
         },
       ],
     });
+
+    console.log("✅ Webhook processado e enviado para o Discord com sucesso.");
+    return NextResponse.json({ received: true, handled: true });
+
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(
-      "[Calendly Webhook] Failed to send Discord message:",
-      message,
-    );
+    console.error("[Webhook] Falha ao processar requisição do Make:", message);
     return NextResponse.json(
-      { error: "Failed to notify Discord", details: message },
-      { status: 502 },
+      { error: "Failed to process webhook", details: message },
+      { status: 500 },
     );
   }
-
-  return NextResponse.json({ received: true, handled: true });
 }
