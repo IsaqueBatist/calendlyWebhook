@@ -2,7 +2,10 @@ import { verifyKey } from "discord-interactions";
 import { NextRequest } from "next/server";
 
 // Importações dos seus módulos
-import { ContratosCommand } from "@/discord/commands/contratos";
+import {
+  NovoContratoCommand,
+  AlertaContratoCommand,
+} from "@/discord/commands/contratos";
 import { LogisticaCommand } from "@/discord/commands/logistica";
 import { RelatorioCommand } from "@/discord/commands/relatorio";
 import { CaseCommand } from "@/discord/commands/case";
@@ -24,7 +27,8 @@ const commandRegistry = [
   ChamadoTecnicoCommand,
   AtrasoCommand,
   ContatoCommand,
-  ContratosCommand,
+  NovoContratoCommand,
+  AlertaContratoCommand,
   LogisticaCommand,
   RelatorioCommand,
   CaseCommand,

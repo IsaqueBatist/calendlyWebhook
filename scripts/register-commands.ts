@@ -26,6 +26,11 @@ const commands = [
     type: 1,
   },
   {
+    name: "novo-contrato",
+    description: "Abre o formulário de solicitação de um novo contrato.",
+    type: 1,
+  },
+  {
     name: "solicitar-edicao",
     description: "Solicita novas edições de vídeo ao time de Marketing.",
     type: 1,
@@ -63,7 +68,7 @@ const commands = [
   },
   {
     name: "abrir-chamado",
-    description: "Abertura de cbamado de suporte operacional.",
+    description: "Abertura de chamado de suporte operacional.",
     type: 1,
   },
   {
