@@ -42,10 +42,10 @@ export const LogisticaCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "equip",
-              label: "Nº DE EQUIPAMENTOS & MOTIVO",
+              custom_id: "destinatario",
+              label: "DESTINATÁRIO (Nome, CPF e Tel)",
               style: 1,
-              placeholder: "Ex: 2 Câmeras - Venda Nova",
+              placeholder: "Ex: Carlos Silva, 123.456.789-00, (11) 9999-9999",
               required: true,
             },
           ],
@@ -55,10 +55,10 @@ export const LogisticaCommand: DiscordCommandModule = {
           components: [
             {
               type: 4,
-              custom_id: "alimentacao",
-              label: "ALIMENTAÇÃO (Solar ou Elétrica)",
+              custom_id: "equip_detalhes",
+              label: "EQUIPAMENTOS, ALIMENTAÇÃO E MOTIVO",
               style: 1,
-              placeholder: "Ex: Solar",
+              placeholder: "Ex: 2 Câmeras Solares - Venda Nova",
               required: true,
             },
           ],
@@ -103,13 +103,13 @@ export const LogisticaCommand: DiscordCommandModule = {
                 inline: true,
               },
               {
-                name: "Equipamentos / Motivo",
-                value: getValue("equip"),
+                name: "Destinatário",
+                value: getValue("destinatario"),
                 inline: false,
               },
               {
-                name: "Alimentação",
-                value: getValue("alimentacao"),
+                name: "Equipamentos / Detalhes",
+                value: getValue("equip_detalhes"),
                 inline: false,
               },
               {
