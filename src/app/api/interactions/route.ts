@@ -85,7 +85,9 @@ export async function POST(req: NextRequest) {
     );
 
     if (module && module.handleComponent) {
-      return new Response(JSON.stringify(module.handleComponent(interaction)), {
+      // 👇 CORREÇÃO AQUI: Adicionado o await para aguardar o processamento do botão!
+      const componentResult = await module.handleComponent(interaction);
+      return new Response(JSON.stringify(componentResult), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });

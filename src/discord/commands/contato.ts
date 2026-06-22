@@ -167,7 +167,7 @@ export const ContatoCommand: DiscordCommandModule = {
     };
   },
 
-  handleComponent: (interaction) => {
+  handleComponent: async (interaction) => {
     const customId = interaction.data.custom_id;
     const embed = interaction.message.embeds[0];
 
@@ -269,7 +269,10 @@ export const ContatoCommand: DiscordCommandModule = {
         `\n🚨 **Escalada (D+3):** Sem resposta do cliente.`;
 
       // 2. ADICIONADO: Dispara a notificação assíncrona para o outro canal
-      notificarGabriel("Rastreamento do Contato", interaction.member.user.id);
+      await notificarGabriel(
+        "Rastreamento do Contato",
+        interaction.member.user.id,
+      );
 
       return {
         type: 7,
