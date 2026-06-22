@@ -427,7 +427,7 @@ export const ChamadoTecnicoCommand: DiscordCommandModule = {
   editModalId: "form_tecnico_devolver", // Modal de motivo de devolução
   buttonPrefixes: ["tecnico_"],
 
-  handleComponent: (interaction) => {
+  handleComponent: async (interaction) => {
     const customId = interaction.data.custom_id;
 
     if (customId === "tecnico_add_obs") {
@@ -514,7 +514,7 @@ export const ChamadoTecnicoCommand: DiscordCommandModule = {
       }
 
       // ADICIONADO: Dispara a notificação assíncrona para o outro canal informando "Técnico"
-      notificarGabriel("Técnico", userId);
+      await notificarGabriel("Técnico", userId);
 
       return {
         type: 7,
