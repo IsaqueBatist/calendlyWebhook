@@ -2,6 +2,35 @@ import type { DiscordCommandModule } from "../types";
 
 const GABRIEL_ID = "1437511382370095217";
 
+// 1. ADICIONADO: Função para notificar o Gabriel no canal específico
+async function notificarGabriel(origem: string, usuarioQueEscalou: string) {
+  const canalNotificacaoId = "1518656020883439756";
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+
+  if (!botToken) {
+    console.error("Token do bot não configurado.");
+    return;
+  }
+
+  try {
+    await fetch(
+      `https://discord.com/api/v10/channels/${canalNotificacaoId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bot ${botToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: `🚨 <@${GABRIEL_ID}>, você tem uma nova escalação!\n**Origem:** ${origem}\n**Escalado por:** <@${usuarioQueEscalou}>`,
+        }),
+      },
+    );
+  } catch (error) {
+    console.error("Erro ao notificar o Gabriel:", error);
+  }
+}
+
 export const ContatoCommand: DiscordCommandModule = {
   name: "contato",
   modalId: "form_contato",
@@ -238,6 +267,10 @@ export const ContatoCommand: DiscordCommandModule = {
       embed.color = 0xff0000;
       embed.fields[historyIndex].value +=
         `\n🚨 **Escalada (D+3):** Sem resposta do cliente.`;
+
+      // 2. ADICIONADO: Dispara a notificação assíncrona para o outro canal
+      notificarGabriel("Rastreamento do Contato", interaction.member.user.id);
+
       return {
         type: 7,
         data: {
