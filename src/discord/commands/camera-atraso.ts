@@ -6,6 +6,51 @@ import { ContatoCommand } from "./contato";
 const COBRAR_USER_ID = "1490760968039301271";
 const GABRIEL_ID = "1437511382370095217";
 
+// 1. ADICIONADO: Função para notificar o Gabriel no canal específico com logs de erro detalhados
+async function notificarGabriel(origem: string, usuarioQueEscalou: string) {
+  const canalNotificacaoId = "1518656020883439756";
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+
+  if (!botToken) {
+    console.error(
+      "❌ ERRO: Token do bot não configurado nas variáveis de ambiente.",
+    );
+    return;
+  }
+
+  console.log(
+    `Tentando enviar escalação para o canal ${canalNotificacaoId}...`,
+  );
+
+  try {
+    const response = await fetch(
+      `https://discord.com/api/v10/channels/${canalNotificacaoId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bot ${botToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: `🚨 <@${GABRIEL_ID}>, você tem uma nova escalação!\n**Origem:** ${origem}\n**Escalado por:** <@${usuarioQueEscalou}>`,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(
+        `❌ DISCORD RECUSOU O ENVIO. HTTP ${response.status}:`,
+        errorData,
+      );
+    } else {
+      console.log("✅ Mensagem enviada com sucesso para o Gabriel!");
+    }
+  } catch (error) {
+    console.error("❌ Erro de rede/catch ao notificar o Gabriel:", error);
+  }
+}
+
 export const AtrasoCommand: DiscordCommandModule = {
   name: "registrar-camera-atraso",
   modalId: "form_atraso",
@@ -168,8 +213,8 @@ export const AtrasoCommand: DiscordCommandModule = {
     };
   },
 
-  // Gerencia cliques nos botões do painel
-  handleComponent: (interaction) => {
+  // Gerencia cliques nos botões do painel - ADICIONADO async AQUI
+  handleComponent: async (interaction) => {
     const customId = interaction.data.custom_id;
     const embed = interaction.message.embeds[0];
     const historyIndex = embed.fields.findIndex(
@@ -271,6 +316,10 @@ export const AtrasoCommand: DiscordCommandModule = {
       embed.color = 0x34495e;
       embed.fields[historyIndex].value +=
         `\n🔺 **Escalado:** Direcionado para gerência técnica devido ao estouro de SLA.`;
+
+      // 2. ADICIONADO: Dispara a notificação assíncrona para o outro canal
+      await notificarGabriel("Câmera em Atraso", userId);
+
       return {
         type: 7,
         data: {
@@ -398,7 +447,6 @@ export const AtrasoCommand: DiscordCommandModule = {
     };
   },
 
-  // Adicione a palavra async aqui ⬇️
   handleCrossoverSubmission: async (components, interaction) => {
     const contatoResponse = ContatoCommand.handleSubmission!(
       components,
@@ -409,7 +457,6 @@ export const AtrasoCommand: DiscordCommandModule = {
     const CANAL_CONTATOS_ID = "1515025013311541248";
 
     try {
-      // Adicione o await aqui ⬇️ para a Vercel não matar o processo
       await createChannelMessage(CANAL_CONTATOS_ID, contatoResponse.data);
     } catch (error) {
       console.error("Erro no crossover:", error);
