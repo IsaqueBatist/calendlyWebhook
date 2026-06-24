@@ -2,11 +2,15 @@ export interface DiscordCommandModule {
   name: string;
   modalId?: string;
   editModalId?: string;
-  buttonPrefixes?: string[]; // NOVO: Define quais botões pertencem a este módulo
-  renderModal?: () => any;
-  handleSubmission?: (components: any[], interaction?: any) => any;
-  handleEditSubmission?: (interaction: any) => any;
-  handleComponent?: (interaction: any) => any;
   crossoverModalId?: string;
-  handleCrossoverSubmission?: (components: any[], interaction?: any) => any;
+  buttonPrefixes?: string[];
+
+  renderModal?: () => any;
+  handleSubmission?: (components: any, interaction?: any) => any | Promise<any>;
+  handleEditSubmission?: (interaction: any) => any | Promise<any>;
+  handleCrossoverSubmission?: (
+    components: any,
+    interaction: any,
+  ) => any | Promise<any>;
+  handleComponent?: (interaction: any) => any | Promise<any>;
 }
