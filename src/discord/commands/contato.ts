@@ -2,18 +2,24 @@ import type { DiscordCommandModule } from "../types";
 
 const GABRIEL_ID = "1437511382370095217";
 
-// 1. ADICIONADO: Função para notificar o Gabriel no canal específico
+// Substitua a função antiga por esta:
 async function notificarGabriel(origem: string, usuarioQueEscalou: string) {
   const canalNotificacaoId = "1518656020883439756";
   const botToken = process.env.DISCORD_BOT_TOKEN;
 
   if (!botToken) {
-    console.error("Token do bot não configurado.");
+    console.error(
+      "❌ ERRO: Token do bot não configurado nas variáveis de ambiente.",
+    );
     return;
   }
 
+  console.log(
+    `Tentando enviar escalação para o canal ${canalNotificacaoId}...`,
+  );
+
   try {
-    await fetch(
+    const response = await fetch(
       `https://discord.com/api/v10/channels/${canalNotificacaoId}/messages`,
       {
         method: "POST",
@@ -26,8 +32,19 @@ async function notificarGabriel(origem: string, usuarioQueEscalou: string) {
         }),
       },
     );
+
+    // Se a API do Discord recusar, pegamos o motivo exato e mostramos na Vercel
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(
+        `❌ DISCORD RECUSOU O ENVIO. HTTP ${response.status}:`,
+        errorData,
+      );
+    } else {
+      console.log("✅ Mensagem enviada com sucesso para o Gabriel!");
+    }
   } catch (error) {
-    console.error("Erro ao notificar o Gabriel:", error);
+    console.error("❌ Erro de rede/catch ao notificar o Gabriel:", error);
   }
 }
 
