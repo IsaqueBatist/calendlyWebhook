@@ -1,85 +1,13 @@
-// scripts/register-commands.ts
 import "dotenv/config";
 
-// Constantes estruturais extraídas da documentação oficial do Discord
 const DISCORD_API = "https://discord.com/api/v10";
-const APP_ID = process.env.DISCORD_APP_ID; // Application ID do portal
+const APP_ID = process.env.DISCORD_APP_ID;
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
-// Aqui você centraliza a definição de todos os seus comandos
 const commands = [
-  {
-    name: "pedido",
-    description: "Abre o formulário de solicitação de novo pedido.",
-    type: 1,
-  },
-  {
-    name: "contato",
-    description:
-      "Inicia o rastreamento do fluxo de contato com cliente offline (T1 a T3).",
-    type: 1,
-  },
-  {
-    name: "alerta-contrato",
-    description:
-      "Notifica o comercial sobre contratos a menos de 3 meses do encerramento.",
-    type: 1,
-  },
-  {
-    name: "novo-contrato",
-    description: "Abre o formulário de solicitação de um novo contrato.",
-    type: 1,
-  },
-  {
-    name: "solicitar-edicao",
-    description: "Solicita novas edições de vídeo ao time de Marketing.",
-    type: 1,
-  },
-  {
-    name: "solicitar-case",
-    description: "Solicita a geração de cases de sucesso ao Marketing.",
-    type: 1,
-  },
-  {
-    name: "registrar-cancelamento",
-    description: "Registra pedidos de cancelamento de clientes.",
-    type: 1,
-  },
   {
     name: "solicitar-envio",
     description: "Solicita a preparação e envio de equipamentos à Logística.",
-    type: 1,
-  },
-  {
-    name: "registrar-envio",
-    description: "Registra os dados técnicos das câmeras enviadas (Logística).",
-    type: 1,
-  },
-  {
-    name: "relatorio-negativacao",
-    description: "Gera o relatório quinzenal de palavras-chave negativadas.",
-    type: 1,
-  },
-  {
-    name: "registrar-camera-atraso",
-    description:
-      "Registra uma câmera com foto atrasada do dashboard para acompanhamento e validação.",
-    type: 1,
-  },
-  {
-    name: "abrir-chamado",
-    description: "Abertura de chamado de suporte operacional.",
-    type: 1,
-  },
-  {
-    name: "intencao-cancelamento",
-    description:
-      "Registra a intenção de cancelamento informada pelo cliente para gestão de retenção.",
-    type: 1,
-  },
-  {
-    name: "solicitar-substituicao",
-    description: "Solicita aprovação para substituição de câmera (Gabriel).",
     type: 1,
   },
 ];
@@ -89,12 +17,10 @@ async function registerCommands() {
     throw new Error("Variáveis DISCORD_APP_ID ou DISCORD_BOT_TOKEN ausentes.");
   }
 
-  // Uso da rota global. Para testes imediatos sem cache de 1h, use a rota de Guild (Servidor):
-  // /applications/${APP_ID}/guilds/${GUILD_ID}/commands
   const endpoint = `${DISCORD_API}/applications/${APP_ID}/commands`;
 
   const response = await fetch(endpoint, {
-    method: "PUT", // PUT sobrescreve todos os comandos globais existentes
+    method: "PUT", // O PUT sobrescreve todos e apaga os que não estão na lista
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bot ${BOT_TOKEN}`,
@@ -108,7 +34,7 @@ async function registerCommands() {
     process.exit(1);
   }
 
-  console.log("Comandos registrados com sucesso na API do Discord.");
+  console.log("Comandos registrados e limpos com sucesso na API do Discord.");
 }
 
 registerCommands();

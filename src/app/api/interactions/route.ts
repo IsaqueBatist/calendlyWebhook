@@ -1,42 +1,9 @@
+import { LogisticaCommand } from "@/discord/commands/logistica";
 import { verifyKey } from "discord-interactions";
 import { NextRequest } from "next/server";
 
-// Importações dos seus módulos
-import {
-  NovoContratoCommand,
-  AlertaContratoCommand,
-} from "@/discord/commands/contratos";
-import { LogisticaCommand } from "@/discord/commands/logistica";
-import { RelatorioCommand } from "@/discord/commands/relatorio";
-import { CaseCommand } from "@/discord/commands/case";
-import { EdicaoCommand } from "@/discord/commands/edicao";
-import { CancelamentoCommand } from "@/discord/commands/cancelamento";
-import { EnviadoCommand } from "@/discord/commands/enviado";
-import { ContatoCommand } from "@/discord/commands/contato";
-import { AtrasoCommand } from "@/discord/commands/camera-atraso";
-import { IntencaoCommand } from "@/discord/commands/intencao";
-import {
-  ChamadoCommand,
-  ChamadoTecnicoCommand,
-} from "@/discord/commands/chamado";
-import SubstituicaoCameraModule from "@/discord/commands/substituicao-camera";
-
-const commandRegistry = [
-  IntencaoCommand,
-  ChamadoCommand,
-  ChamadoTecnicoCommand,
-  AtrasoCommand,
-  ContatoCommand,
-  NovoContratoCommand,
-  AlertaContratoCommand,
-  LogisticaCommand,
-  RelatorioCommand,
-  CaseCommand,
-  EdicaoCommand,
-  CancelamentoCommand,
-  EnviadoCommand,
-  SubstituicaoCameraModule,
-];
+// Apenas o comando de logística continua registrado
+const commandRegistry = [LogisticaCommand];
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-signature-ed25519");
@@ -68,9 +35,9 @@ export async function POST(req: NextRequest) {
   // 2. COMANDO DE BARRA
   if (interaction.type === 2) {
     const commandName = interaction.data.name;
-    const module = commandRegistry.find((m) => m.name === commandName);
-    if (module && module.renderModal) {
-      return new Response(JSON.stringify(module.renderModal()), {
+    const cmdModule = commandRegistry.find((m) => m.name === commandName);
+    if (cmdModule && cmdModule.renderModal) {
+      return new Response(JSON.stringify(cmdModule.renderModal()), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
@@ -80,13 +47,12 @@ export async function POST(req: NextRequest) {
   // 3. CLIQUE EM BOTÃO
   if (interaction.type === 3) {
     const customId = interaction.data.custom_id;
-    const module = commandRegistry.find((m) =>
-      m.buttonPrefixes?.some((prefix: any) => customId.startsWith(prefix)),
+    const cmdModule = commandRegistry.find((m) =>
+      m.buttonPrefixes?.some((prefix: string) => customId.startsWith(prefix)),
     );
 
-    if (module && module.handleComponent) {
-      // 👇 CORREÇÃO AQUI: Adicionado o await para aguardar o processamento do botão!
-      const componentResult = await module.handleComponent(interaction);
+    if (cmdModule && cmdModule.handleComponent) {
+      const componentResult = await cmdModule.handleComponent(interaction);
       return new Response(JSON.stringify(componentResult), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -103,7 +69,6 @@ export async function POST(req: NextRequest) {
       (m) => m.modalId === modalId,
     );
     if (moduleForCreation && moduleForCreation.handleSubmission) {
-      // ADICIONADO O AWAIT AQUI
       const creationResult = await moduleForCreation.handleSubmission(
         interaction.data.components,
         interaction,
@@ -119,25 +84,8 @@ export async function POST(req: NextRequest) {
       (m) => m.editModalId === modalId,
     );
     if (moduleForEdit && moduleForEdit.handleEditSubmission) {
-      // ADICIONADO O AWAIT AQUI (Isso resolve o erro da devolução!)
       const editResult = await moduleForEdit.handleEditSubmission(interaction);
       return new Response(JSON.stringify(editResult), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Submissão de Crossover (Atraso -> Contato)
-    const moduleForCrossover = commandRegistry.find(
-      (m) => m.crossoverModalId === modalId,
-    );
-    if (moduleForCrossover && moduleForCrossover.handleCrossoverSubmission) {
-      const crossoverResult =
-        await moduleForCrossover.handleCrossoverSubmission(
-          interaction.data.components,
-          interaction,
-        );
-      return new Response(JSON.stringify(crossoverResult), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });

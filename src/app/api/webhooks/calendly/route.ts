@@ -1,75 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
 import { sendDiscordMessage } from "@/lib/discord";
+import { NextRequest, NextResponse } from "next/server";
+
+// Nova interface tipando exatamente o que o Make vai nos enviar
+interface MakeCalendlyPayload {
+  status?: string;
+  nome?: string;
+  email?: string;
+  evento?: string;
+  respostas?: string;
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    // 1. Faz o parse do JSON enviado pelo Make
-    const body = await req.json();
+    // Recebe o JSON do Make tipado com a nossa interface
+    const body = (await req.json()) as MakeCalendlyPayload;
 
-    // Log de Raio-X: Mostra exatamente como o Make enviou o JSON
-    console.log("=== BODY COMPLETO RECEBIDO DO MAKE ===");
+    console.log("=== BODY RECEBIDO DO MAKE ===");
     console.log(JSON.stringify(body, null, 2));
 
-    // Captura as variáveis aceitando tanto minúsculas quanto a primeira maiúscula
-    const status = body.status || body.Status;
-    const evento = body.evento || body.Evento;
-    const descricao = body.descricao || body.Descricao;
-
-    console.log("=== DADOS EXTRAÍDOS ===");
-    console.log("Status:", status);
-    console.log("Evento:", evento);
-
-    // 2. Filtra apenas eventos confirmados
-    if (status !== "confirmed") {
-      console.log("Evento ignorado. Status:", status);
+    // Verifica se o evento está confirmado (O Calendly via Make costuma mandar "active" ou "confirmed")
+    const status = body.status?.toLowerCase();
+    if (status !== "active" && status !== "confirmed") {
       return NextResponse.json({
         received: true,
         handled: false,
-        reason: "Status não é confirmed",
+        reason: `Status ignorado: ${status}`,
       });
     }
 
-    // 3. Extrai Nome e E-mail de dentro da descrição
-    const nameMatch =
-      descricao?.match(/Nome:\s*(.+)/i) || descricao?.match(/Name:\s*(.+)/i);
-    const emailMatch =
-      descricao?.match(/E-mail:\s*([^\s<]+)/i) ||
-      descricao?.match(/Email:\s*([^\s<]+)/i);
+    // Puxa as variáveis mapeadas do Make (ou usa um texto padrão se vier vazio)
+    const name = body.nome || "Não informado";
+    const email = body.email || "Não informado";
+    const evento = body.evento || "Reunião Agendada";
+    const respostas = body.respostas || "Sem detalhes adicionais";
 
-    const name = nameMatch ? nameMatch[1].trim() : "Não informado";
-    const email = emailMatch ? emailMatch[1].trim() : "Não informado";
-
-    // 4. Verifica a URL do Webhook do Discord no seu .env
     const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
       console.error("[Webhook] DISCORD_WEBHOOK_URL não configurada no .env.");
       return NextResponse.json(
-        { error: "Server misconfiguration: missing DISCORD_WEBHOOK_URL" },
+        { error: "Missing DISCORD_WEBHOOK_URL" },
         { status: 500 },
       );
     }
 
-    // Formata a descrição para não estourar o limite do Discord
-    const descricaoResumida = descricao
-      ? descricao.substring(0, 800) + (descricao.length > 800 ? "..." : "")
-      : "Sem detalhes adicionais";
+    const descricaoResumida =
+      respostas.length > 800 ? respostas.substring(0, 800) + "..." : respostas;
 
-    // 5. Constrói e envia a mensagem para o Discord
+    // Envia para o Discord
     await sendDiscordMessage(discordWebhookUrl, {
       embeds: [
         {
           title: "📅 Novo Agendamento Confirmado!",
-          color: 0x006bff, // Azul padrão do Calendly
+          color: 0x006bff,
           fields: [
             { name: "👤 Nome", value: name, inline: true },
             { name: "📧 E-mail", value: email, inline: true },
+            { name: "📋 Reunião", value: evento, inline: false },
             {
-              name: "📋 Reunião",
-              value: evento || "Reunião Agendada",
-              inline: false,
-            },
-            {
-              name: "📝 Informações do Agendamento (Respostas / Links)",
+              name: "📝 Informações do Formulário",
               value: descricaoResumida,
               inline: false,
             },
