@@ -13,7 +13,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       subject = body.subject || "";
       text = body.text || "";
     } else {
-      // application/x-www-form-urlencoded (Muito mais seguro para textos grandes como e-mails)
       const formData = await req.formData();
       subject = formData.get("subject")?.toString() || "";
       text = formData.get("text")?.toString() || "";
@@ -43,7 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // Expressões Regulares (Regex) para achar os dados no meio do texto (Flexível para PT ou EN)
+    // Expressões Regulares (Regex) cirúrgicas para isolar apenas o que importa
     const nameMatch = text.match(/(?:Invitee|Convidado|Nome):\s*(.+)/i);
     const emailMatch = text.match(
       /(?:Invitee Email|Email do convidado|Email|E-mail):\s*([^\s<]+)/i,
@@ -51,22 +50,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const eventMatch = text.match(
       /(?:Event Type|Tipo de evento|Evento):\s*(.+)/i,
     );
+    const dateTimeMatch = text.match(
+      /(?:Event Date\/Time|Data\/Hora do evento|Data\/Horário|Data e Hora):\s*(.+)/i,
+    );
 
     const name = nameMatch ? nameMatch[1].trim() : "Não localizado";
     const email = emailMatch ? emailMatch[1].trim() : "Não localizado";
     const evento = eventMatch ? eventMatch[1].trim() : "Reunião Agendada";
-
-    // Tentar capturar as respostas do formulário (Limpando o final onde ficam os links de cancelar)
-    let resumo = "Verifique a caixa de entrada para mais detalhes.";
-    const splitCancel = text.split(
-      /(?:Cancel this event|Cancelar este evento|Need to make changes)/i,
-    );
-    if (splitCancel.length > 0) {
-      const rawBody = splitCancel[0].trim();
-      // Corta o e-mail se ele for gigante para não dar erro de limite no Discord
-      resumo =
-        rawBody.length > 800 ? rawBody.substring(0, 800) + "..." : rawBody;
-    }
+    const dataHora = dateTimeMatch ? dateTimeMatch[1].trim() : "Não localizada";
 
     const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
@@ -77,17 +68,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Dispara para o Discord
+    // Dispara para o Discord com o layout 100% limpo e organizado
     await sendDiscordMessage(discordWebhookUrl, {
       embeds: [
         {
-          title: "📅 Novo Agendamento (Via E-mail)!",
-          color: 0x006bff,
+          title: "📅 Novo Agendamento Confirmado!",
+          color: 0x006bff, // Azul padrão do Calendly
           fields: [
-            { name: "👤 Nome", value: name, inline: true },
+            { name: "👤 Quem Marcou", value: name, inline: true },
             { name: "📧 E-mail", value: email, inline: true },
-            { name: "📋 Reunião", value: evento, inline: false },
-            { name: "📝 Resumo do E-mail", value: resumo, inline: false },
+            { name: "📋 Tipo de Reunião", value: evento, inline: false },
+            { name: "⏰ Data e Horário", value: dataHora, inline: false },
           ],
           footer: { text: "Automação Gmail → Make → Discord" },
           timestamp: new Date().toISOString(),
@@ -95,9 +86,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ],
     });
 
-    console.log(
-      "✅ Webhook de e-mail processado e enviado para o Discord com sucesso.",
-    );
+    console.log("✅ Mensagem formatada enviada para o Discord com sucesso.");
     return NextResponse.json({ received: true, handled: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
